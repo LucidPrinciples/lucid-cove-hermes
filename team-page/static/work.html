@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" data-frequency="Peace">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <title>Lucid Principles — Work</title>
+  <link rel="stylesheet" href="/static/work.css" />
+</head>
+<body>
+  <!-- Daily driver: Paperclip full-bleed + Lucid Tuning Hub badge -->
+  <iframe id="pc-frame" class="pc-frame" title="Paperclip" src="about:blank"></iframe>
+
+  <button type="button" id="freq-badge" class="freq-badge" aria-label="Open today’s Drop">
+    <span id="freq-text">Peace</span>
+  </button>
+
+  <div id="drop-overlay" class="drop-overlay" hidden>
+    <div class="drop-panel" role="dialog" aria-modal="true" aria-label="Today’s Drop">
+      <header class="drop-head">
+        <div>
+          <div class="drop-kicker">Tuning Hub</div>
+          <div id="drop-title" class="drop-title">Today’s Drop</div>
+        </div>
+        <div class="drop-head-actions">
+          <a id="drop-team" href="/" target="_blank" rel="noopener">Team</a>
+          <a href="/tools" target="_blank" rel="noopener">Action Board</a>
+          <a id="drop-open" href="https://drop.lucidprinciples.com" target="_blank" rel="noopener">Open full</a>
+          <button type="button" id="drop-close" class="drop-close" aria-label="Close">×</button>
+        </div>
+      </header>
+      <iframe id="drop-frame" class="drop-frame" title="Daily Drop player" src="about:blank" allow="autoplay"></iframe>
+    </div>
+  </div>
+
+  <script src="/static/work.js"></script>
+</body>
+</html>

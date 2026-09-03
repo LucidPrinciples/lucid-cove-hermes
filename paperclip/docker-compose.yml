@@ -1,0 +1,43 @@
+# Paperclip beside Lucid Cove on Hermes (P620)
+#
+# Use the official prebuilt image — local `docker build` of upstream fails on
+# slim Node images without a C toolchain (Rust paperclip-runner needs `cc`).
+#
+# Layout:
+#   ~/lucid-cove-hermes/paperclip/
+#     docker-compose.yml
+#     data/                 ← PAPERCLIP_HOME
+#     .env
+#
+#   cd ~/lucid-cove-hermes/paperclip && docker compose up -d
+#
+# Host networking: reach Hermes API at 127.0.0.1:8642; Mac tunnels :3100.
+
+name: lucid-cove-paperclip
+
+services:
+  paperclip:
+    # Official images: https://ghcr.io/paperclipai/paperclip
+    # Prefer a moving but built tag over compiling from source on the P620.
+    image: ${PAPERCLIP_IMAGE:-ghcr.io/paperclipai/paperclip:canary}
+    container_name: lucid-cove-paperclip
+    restart: unless-stopped
+    network_mode: host
+    pids_limit: 2048
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      HOST: "127.0.0.1"
+      PORT: "3100"
+      PAPERCLIP_HOME: "/paperclip"
+      PAPERCLIP_DEPLOYMENT_MODE: "${PAPERCLIP_DEPLOYMENT_MODE:-local_trusted}"
+      PAPERCLIP_DEPLOYMENT_EXPOSURE: "private"
+      PAPERCLIP_PUBLIC_URL: "${PAPERCLIP_PUBLIC_URL:-http://127.0.0.1:3100}"
+      BETTER_AUTH_SECRET: "${BETTER_AUTH_SECRET:?Set BETTER_AUTH_SECRET in paperclip/.env}"
+      PAPERCLIP_TELEMETRY_DISABLED: "${PAPERCLIP_TELEMETRY_DISABLED:-1}"
+      DO_NOT_TRACK: "1"
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-}"
+    volumes:
+      - ./data:/paperclip

@@ -1,0 +1,8 @@
+{
+  "enabled": true,
+  "model": "qwen3:8b",
+  "ollama_base_url": "http://127.0.0.1:11434/v1",
+  "max_rounds": 3,
+  "retry_sleep_sec": 30,
+  "note": "Tuning model is independent of Paperclip/Hermes orchestrator models. Flip enabled false to skip morning LTP + catch-up sweeps."
+}

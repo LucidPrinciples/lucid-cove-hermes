@@ -1,0 +1,58 @@
+/* Action Board — Lucid Cove on Hermes (mined layout from Cove action-board) */
+
+.ab-content { padding: 1.25rem; max-width: 1100px; margin: 0 auto; }
+.ab-header { margin-bottom: 1rem; }
+.ab-header h2 { font-size: 1.15rem; font-weight: 700; margin: 0 0 0.2rem; }
+.ab-subtitle { color: var(--dim); font-size: 0.78rem; margin: 0; }
+
+.ab-act-tabs {
+  display: flex; gap: 4px; padding: 0 0 8px; margin-bottom: 12px;
+  border-bottom: 1px solid var(--border); overflow-x: auto; flex-wrap: nowrap;
+}
+.ab-act-tab {
+  flex-shrink: 0; padding: 6px 12px; border-radius: 6px;
+  font-size: 0.72rem; font-weight: 600; cursor: pointer;
+  background: transparent; border: 1px solid var(--border); color: var(--dim);
+  transition: all 0.15s; white-space: nowrap; font-family: inherit;
+}
+.ab-act-tab:hover { border-color: var(--freq-primary); color: var(--text); }
+.ab-act-tab.active {
+  background: var(--freq-primary); color: #0a0a0f; border-color: var(--freq-primary);
+}
+
+.ab-panel { min-height: 12rem; }
+.ab-empty {
+  text-align: center; color: var(--dim); padding: 3rem 1rem; font-size: 0.85rem;
+}
+
+.ab-act-panel {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.65rem;
+}
+#ab-tools-list { display: contents; }
+
+.ab-tool-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 1rem 1.05rem; cursor: pointer; transition: border-color 0.15s, transform 0.15s;
+  border-left: 3px solid var(--tool-agent-color, var(--freq-primary));
+}
+.ab-tool-card:hover {
+  border-color: var(--freq-primary); transform: translateY(-1px);
+}
+.ab-tool-card.tool-placeholder { opacity: 0.7; }
+.ab-tool-header {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+.ab-tool-header h3 { margin: 0; font-size: 0.95rem; font-weight: 650; }
+.ab-tool-agent {
+  font-size: 0.68rem; font-weight: 600; color: var(--tool-agent-color, var(--freq-primary));
+}
+.ab-tool-desc {
+  margin: 0 0 0.65rem; font-size: 0.78rem; color: var(--dim); line-height: 1.4;
+}
+.ab-tool-meta { font-size: 0.68rem; }
+.ab-tool-status-active {
+  color: #6d6; font-weight: 650;
+}
+.ab-tool-status-soon { color: var(--dim); }

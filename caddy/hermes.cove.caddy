@@ -1,0 +1,18 @@
+# Lucid Cove on Hermes — Team overlay + Jules (phone HTTPS)
+# Install on P620: copy into ~/.lucidcove/caddy/conf.d/ then reload lucidcove-caddy
+# (See runbooks/RB-jules-phone-https.md)
+#
+# More specific than *.cove.lucidcove.org → founder app :8205
+
+hermes.cove.lucidcove.org {
+	# TLS via global Cloudflare DNS-01 on lucidcove-caddy
+	encode gzip
+
+	# Team page = host network on :3200. Caddy is bridged → use docker0 gateway.
+	# (127.0.0.1 and missing host.docker.internal both 502'd.)
+	reverse_proxy 172.17.0.1:3200 {
+		header_up Host {host}
+		header_up X-Forwarded-Proto https
+		header_up X-Real-IP {remote}
+	}
+}

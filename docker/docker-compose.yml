@@ -1,0 +1,75 @@
+# Lucid Cove on Hermes — P620 / self-host stack
+#
+# Product: Lucid Cove on Hermes (repo: lucid-cove-hermes)
+# Runtime: Hermes Agent (Nous Research) — not forked; built from upstream clone.
+#
+# Layout on P620:
+#   /home/lphomebase/lucid-cove-hermes/
+#     docker/docker-compose.yml   ← this file
+#     data/                       ← Hermes home (mounted → /opt/data)
+#     vault/                      ← house brain (mounted → /opt/data/vault)
+#     upstream/                   ← git clone of NousResearch/hermes-agent
+#     paperclip/                  ← Paperclip Docker (sibling compose)
+#
+# Agents write the house vault at /opt/data/vault/... (inside HERMES_WRITE_SAFE_ROOT).
+# Do not use a separate /opt/hermes/vault path — that sits outside the write fence.
+#
+# Mac UI:
+#   ssh -L 9119:127.0.0.1:9119 -L 3100:127.0.0.1:3100 lphomebase@lp-homebase.mesh.lucidcove.org
+#   Hermes dashboard :9119 · Paperclip :3100
+#
+# Paperclip hires this Hermes via hermes_gateway → API server :8642 (loopback).
+
+name: lucid-cove-hermes
+
+services:
+  gateway:
+    build: ../upstream
+    image: lucid-cove-hermes:local
+    container_name: lucid-cove-hermes
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ../data:/opt/data
+      - ../vault:/opt/data/vault
+    env_file:
+      # Compose secrets / API_SERVER_* (this directory)
+      - path: .env
+        required: false
+      # Hermes home .env — MATRIX_* must be in *process* env or gateway skips Matrix
+      - path: ../data/.env
+        required: false
+    environment:
+      - HERMES_UID=${HERMES_UID:-10000}
+      - HERMES_GID=${HERMES_GID:-10000}
+      - HERMES_WRITE_SAFE_ROOT=/opt/data
+      - LCH_VAULT=/opt/data/vault
+      # OpenAI-compatible + Paperclip hermes_gateway surface (loopback only).
+      - API_SERVER_ENABLED=${API_SERVER_ENABLED:-true}
+      - API_SERVER_HOST=${API_SERVER_HOST:-127.0.0.1}
+      - API_SERVER_PORT=${API_SERVER_PORT:-8642}
+      - API_SERVER_KEY=${API_SERVER_KEY:?Set API_SERVER_KEY in docker/.env}
+    command: ["gateway", "run"]
+
+  # Web UI + Desktop remote backend surface (port 9119).
+  dashboard:
+    image: lucid-cove-hermes:local
+    container_name: lucid-cove-hermes-ui
+    restart: unless-stopped
+    network_mode: host
+    depends_on:
+      - gateway
+    volumes:
+      - ../data:/opt/data
+      - ../vault:/opt/data/vault
+    env_file:
+      - path: .env
+        required: false
+      - path: ../data/.env
+        required: false
+    environment:
+      - HERMES_UID=${HERMES_UID:-10000}
+      - HERMES_GID=${HERMES_GID:-10000}
+      - HERMES_WRITE_SAFE_ROOT=/opt/data
+      - LCH_VAULT=/opt/data/vault
+    command: ["dashboard", "--host", "127.0.0.1", "--no-open"]

@@ -1,0 +1,34 @@
+# Team page sidecar — Lucid Cove on Hermes
+# On P620: cd ~/lucid-cove-hermes/team-page && docker compose up -d --build
+# Mac: ssh -L 3200:127.0.0.1:3200 lphomebase@lp-homebase.mesh.lucidcove.org
+# Open http://127.0.0.1:3200/
+
+name: lucid-cove-team
+
+services:
+  team-page:
+    build:
+      context: ..
+      dockerfile: team-page/Dockerfile
+    image: lucid-cove-team:local
+    container_name: lucid-cove-team
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      LCH_VAULT: /vault
+      PAPERCLIP_URL: http://127.0.0.1:3100
+      PAPERCLIP_COMPANY_ID: ${PAPERCLIP_COMPANY_ID:-7a9194f9-00ad-486d-87bc-be8a80669e65}
+      PAPERCLIP_PUBLIC_URL: http://127.0.0.1:3100
+      HERMES_PUBLIC_URL: http://127.0.0.1:9119
+      JULES_URL: ${JULES_URL:-/jules}
+      STEWART_NC_URL: ${STEWART_NC_URL:-https://cloud.cove.lucidcove.org}
+      STEWART_NC_USER: ${STEWART_NC_USER:-stewart}
+      STEWART_NC_PASSWORD: ${STEWART_NC_PASSWORD:-}
+      JULES_VOICE_WS: ${JULES_VOICE_WS:-wss://voice.cove.lucidcove.org}
+      JULES_VOICE_HTTP: ${JULES_VOICE_HTTP:-https://voice.cove.lucidcove.org}
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      # rw so Team UI can edit vault/ltp_config.json (tuning model / on-off)
+      - ../vault:/vault

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" data-frequency="Peace">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <title>Action Board — Lucid Cove on Hermes</title>
+  <link rel="stylesheet" href="/static/team.css" />
+  <link rel="stylesheet" href="/static/action-board.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="mark">LC</span>
+      <div>
+        <div class="title">Lucid Cove on Hermes</div>
+        <div class="sub">Action Board</div>
+      </div>
+    </div>
+    <nav class="top-nav" aria-label="Primary">
+      <a href="/work">Work</a>
+      <a href="/">Team</a>
+      <a href="/tools" class="on">Action Board</a>
+    </nav>
+    <a id="hub-badge" class="hub-badge" href="/" title="Team Drop">
+      <span class="hub-label">Tuning Hub</span>
+      <span id="hub-freq" class="hub-freq">—</span>
+    </a>
+  </header>
+
+  <main class="ab-content">
+    <div class="ab-header">
+      <h2>Action Board</h2>
+      <p class="ab-subtitle">Actions · Links · Flows · Tools — Lucid Cove overlay on Hermes</p>
+    </div>
+
+    <div class="ab-act-tabs" role="tablist" aria-label="Action Board sections">
+      <button type="button" class="ab-act-tab" data-tab="actions" role="tab">Actions</button>
+      <button type="button" class="ab-act-tab" data-tab="links" role="tab">Links</button>
+      <button type="button" class="ab-act-tab" data-tab="flows" role="tab">Flows</button>
+      <button type="button" class="ab-act-tab active" data-tab="tools" role="tab">Tools</button>
+    </div>
+
+    <section id="panel-actions" class="ab-panel" hidden>
+      <div class="ab-empty">No actions yet — we’ll add house actions here as the overlay grows.</div>
+    </section>
+    <section id="panel-links" class="ab-panel" hidden>
+      <div class="ab-empty">No links yet — Drop, briefs, and share targets will land here.</div>
+    </section>
+    <section id="panel-flows" class="ab-panel" hidden>
+      <div class="ab-empty">No flows yet — guided creation flows come later.</div>
+    </section>
+    <section id="panel-tools" class="ab-panel ab-act-panel">
+      <div id="ab-tools-list"></div>
+    </section>
+  </main>
+
+  <script src="/static/action-board.js"></script>
+</body>
+</html>
