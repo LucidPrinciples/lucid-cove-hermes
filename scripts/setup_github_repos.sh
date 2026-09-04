@@ -72,7 +72,9 @@ configure_repo() {
   git -C "$dir" config --local credential.useHttpPath true
   git -C "$dir" remote set-url origin "https://github.com/${2}.git"
   if [[ -s "$STORE" ]]; then
-    git -C "$dir" config --local credential.helper "store --file ${STORE_IN_CONTAINER}"
+    # Same .git/config on host and in Hermes; only one store file exists in each view.
+    git -C "$dir" config --local --unset-all credential.helper >/dev/null 2>&1 || true
+    git -C "$dir" config --local credential.helper '!f() { s=/opt/data/.secrets/github-agent; [ -f "$s" ] || s=/home/lphomebase/lucid-cove-hermes/data/.secrets/github-agent; git credential-store --file "$s" "$@"; }; f'
   fi
 }
 
@@ -82,8 +84,9 @@ for slug in "${REPOS[@]}"; do
   url="https://github.com/${slug}.git"
   tok="$(token_for "$slug")"
   if [[ -d "${dest}/.git" ]]; then
+    configure_repo "$dest" "$slug"
     log "fetch $slug"
-    git -C "$dest" fetch --prune origin || log "WARN: fetch failed $slug"
+    GIT_TERMINAL_PROMPT=0 git -C "$dest" fetch --prune origin || log "WARN: fetch failed $slug"
   else
     log "clone $slug"
     clone_from="$url"
@@ -96,8 +99,8 @@ for slug in "${REPOS[@]}"; do
       continue
     fi
     git -C "$dest" remote set-url origin "$url"
+    configure_repo "$dest" "$slug"
   fi
-  configure_repo "$dest" "$slug"
   log "ok $dest  $(git -C "$dest" rev-parse --abbrev-ref HEAD)@$(git -C "$dest" rev-parse --short HEAD)"
 done
 

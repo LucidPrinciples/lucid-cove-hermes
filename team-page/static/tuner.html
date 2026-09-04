@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" data-frequency="Peace">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <title>Lucid Tuner — practice</title>
+  <link rel="stylesheet" href="/static/team.css" />
+  <link rel="stylesheet" href="/static/tuner.css" />
+  <link rel="stylesheet" href="/static/tuner/tune-flow.css" />
+  <link rel="stylesheet" href="/static/tuner/tuner-mount.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="mark">LT</span>
+      <div>
+        <div class="title">Lucid Tuner</div>
+        <div class="sub">Practice · same player as Cove</div>
+      </div>
+    </div>
+    <nav class="top-nav" aria-label="Primary">
+      <a href="/tune" data-nav="tune">Tune</a>
+      <a href="/playlists" data-nav="playlists">Playlists</a>
+      <a href="/deeper" data-nav="deeper">Go Deeper</a>
+      <span class="nav-gap" aria-hidden="true"></span>
+      <a href="/">Team</a>
+      <a href="/work">Work</a>
+      <a href="/tools">Action Board</a>
+    </nav>
+    <button type="button" id="freq-badge" class="drop-freq-badge" aria-label="Open today’s Drop" aria-expanded="false">
+      <span id="freq-text">Peace</span>
+    </button>
+  </header>
+
+  <div id="drop-overlay" class="modal-overlay" hidden>
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-label="Tuning Hub">
+      <header class="modal-head">
+        <div id="drop-title" class="modal-title">Tuning Hub · Drop player</div>
+        <button type="button" id="drop-close" class="modal-close" aria-label="Close">×</button>
+      </header>
+      <iframe id="drop-frame" class="modal-frame" title="Tuning Hub Drop player" src="about:blank" allow="autoplay"></iframe>
+    </div>
+  </div>
+
+  <main class="tuner-main">
+    <section id="panel-tune" class="tuner-panel" hidden>
+      <div class="loading">Loading Tune…</div>
+    </section>
+
+    <section id="panel-playlists" class="tuner-panel" hidden>
+      <p class="op-playlists-sub">Choose by Signal type. Shuffle and repeat what resonates.</p>
+      <div id="playlistStreams" class="op-playlist-grid"><div class="loading">Loading streams…</div></div>
+    </section>
+
+    <section id="panel-deeper" class="tuner-panel" hidden>
+      <p class="tuner-kicker">Framework</p>
+      <h1>Go Deeper</h1>
+      <div class="op-deeper-content">
+        <div class="op-deeper-section">
+          <h3 class="op-deeper-heading">The Lucid Principles</h3>
+          <p class="op-deeper-text">22 principles discovered through music, refined into a framework for conscious living. Each tuning frequency connects to a principle. Each principle carries a practice.</p>
+          <div class="op-deeper-links">
+            <a href="https://lucidprinciples.com/canon" target="_blank" rel="noopener" class="op-deeper-link">The Canon →</a>
+            <a href="https://lucidprinciples.com/music" target="_blank" rel="noopener" class="op-deeper-link">The Music →</a>
+          </div>
+        </div>
+        <div class="op-deeper-section">
+          <h3 class="op-deeper-heading">The Framework</h3>
+          <p class="op-deeper-text">Broadcast Frequency. Signal Type. Tuning Keys. The Love Equation. A complete system for understanding how attention shapes reality.</p>
+          <div class="op-deeper-links">
+            <a href="https://lucidprinciples.com" target="_blank" rel="noopener" class="op-deeper-link">Lucid Principles →</a>
+          </div>
+        </div>
+        <div class="op-deeper-section">
+          <h3 class="op-deeper-heading">Lucid Cove</h3>
+          <p class="op-deeper-text">Your private intelligence. Built on the Lucid Principles framework. Tuning is the daily practice that aligns your broadcast.</p>
+          <div class="op-deeper-links">
+            <a href="https://lucidcove.org" target="_blank" rel="noopener" class="op-deeper-link">About Lucid Cove →</a>
+          </div>
+        </div>
+        <div class="op-deeper-section">
+          <h3 class="op-deeper-heading">How to use this system</h3>
+          <p class="op-deeper-text">Playlists to listen. Tune when you want a session. Go Deeper when you want the why. Help stays the practical doorway once a Cove is in the picture.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="mini-player" id="miniPlayer" onclick="(function(){ if (typeof _otSource!=='undefined' && _otSource==='playlist') location.href='/playlists'; else location.href='/tune'; })()">
+    <div class="mp-progress" id="mpProgress"></div>
+    <div class="mp-info">
+      <div class="mp-title" id="mpTitle">--</div>
+      <div class="mp-freq" id="mpFreq"></div>
+    </div>
+    <button class="mp-btn" onclick="event.stopPropagation(); otPrev();" title="Previous">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+    </button>
+    <button class="mp-btn mp-play" id="mpPlayBtn" onclick="event.stopPropagation(); otTogglePlay();" title="Play/Pause">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" id="mpPlayIcon"><polygon points="5,3 19,12 5,21"/></svg>
+    </button>
+    <button class="mp-btn" onclick="event.stopPropagation(); otNext();" title="Next">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+    </button>
+  </div>
+
+  <script src="/static/tuner/lp-colors.js"></script>
+  <script src="/static/tuner-adapter.js"></script>
+  <script src="/static/tuner/tuning-panel.js"></script>
+  <script src="/static/tuner/playlists.js"></script>
+  <script src="/static/tuner/tune-flow.js"></script>
+  <script src="/static/tuner.js"></script>
+</body>
+</html>

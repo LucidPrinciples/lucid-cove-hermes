@@ -1,0 +1,15 @@
+Sourced from LucidPrinciples/lucid-cove — do not rewrite.
+
+  tune-flow.js      src/dashboard/static/js/tune-flow.js
+  playlists.js      src/dashboard/static/js/playlists.js
+  tuning-panel.js   src/dashboard/static/js/tuning-panel.js
+  lp-colors.js      src/dashboard/static/js/lp-colors.js
+  quantum.py        src/utils/quantum.py (ANU QRNG 3-tier)
+  tune-flow.css     src/dashboard/static/css/tune-flow.css
+  tuner-mount.css   slices of dashboard.css + components.css (player + playlists + mini player)
+  lt_reference.json data/lt_reference.json
+  mark-tuner.png    src/dashboard/static/mark-tuner.png
+
+When lucid-cove Tuner files change, re-copy. Overlay only adds adapter + vault-backed /api/tuning/*.
+
+Overlay patch in tune-flow.js `_tfShowTuningDetail`: lucid-cove referenced unbound `data` (should be session `s`), which threw and blocked the history modal. Keep that fix when re-copying.

@@ -194,6 +194,14 @@ async def index():
     return FileResponse(STATIC / "index.html")
 
 
+@app.get("/tune")
+@app.get("/playlists")
+@app.get("/deeper")
+async def tuner_door():
+    """Tuner-tier door (Tune / Playlists / Go Deeper) — reuse lucid-cove, do not rewrite."""
+    return FileResponse(STATIC / "tuner.html")
+
+
 @app.get("/work")
 async def work():
     """Daily driver: Paperclip iframe + frequency badge → Drop player overlay."""
@@ -570,3 +578,8 @@ async def team():
         },
         "agents": ordered,
     })
+
+
+import tuner_api
+
+tuner_api.mount_tuning_api(app, VAULT, _today_drop)

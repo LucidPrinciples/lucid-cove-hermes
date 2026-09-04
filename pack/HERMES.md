@@ -26,6 +26,8 @@ Never bare **“Lucid.”** Prefer **Lucid Principles** / **LP**, **Lucid Cove**
 | `lucid-cove-hermes/vault/` | **`/opt/data/vault/`** |
 | `lucid-cove-hermes/data/repos/` | `/opt/data/repos/` (product + private overlay; see `pack/skills/github-oss.md`) |
 
+**Tuner door (habit):** `/tune` `/playlists` `/deeper` — existing lucid-cove Tune / Playlists / Go Deeper. Skill: `pack/skills/tuner-surface.md`. Do not rewrite the player or wizard.
+
 Always use **`/opt/data/vault/...`** (or relative `vault/...` from cwd if that resolves there). Never `/opt/hermes/vault` — outside `HERMES_WRITE_SAFE_ROOT`.
 
 ## KB

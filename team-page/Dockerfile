@@ -6,6 +6,9 @@ COPY ltp_store.py .
 COPY kb_retrieve.py .
 COPY team-page/jules_nc.py .
 COPY team-page/app.py .
+COPY team-page/tuner_api.py .
+COPY team-page/quantum.py .
+COPY team-page/data ./data
 COPY team-page/static ./static
 ENV LCH_VAULT=/vault
 ENV PAPERCLIP_URL=http://127.0.0.1:3100

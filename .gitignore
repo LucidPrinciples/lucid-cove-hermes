@@ -1,5 +1,5 @@
 # Runtime / this house (never the overlay git)
-data/
+/data/
 upstream/
 backup-staging/
 .venv/
@@ -21,6 +21,7 @@ vault/ltp.sqlite
 vault/kb_index.sqlite
 vault/drop/
 vault/team/
+vault/tuner/
 vault/journal/
 vault/presence/
 vault/brand/

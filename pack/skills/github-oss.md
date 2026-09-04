@@ -13,6 +13,8 @@ Work from clones inside the write fence. Two kinds of remote — do not mix.
 
 House **backup** is a different remote (`LucidCoveHermes-Backups`). Never push overlay work there.
 
+**Tuner habit door** lives in the overlay (`/tune` `/playlists` `/deeper`) but the wizard + player are **lucid-cove** files. See `pack/skills/tuner-surface.md`. Do not invent a new Tune flow.
+
 ## Ship (locked)
 
 1. New branch off `main`  
