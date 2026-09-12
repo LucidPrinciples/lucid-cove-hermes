@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" data-frequency="Peace">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <title>Team — Lucid Cove on Hermes</title>
+  <link rel="stylesheet" href="/static/team.css" />
+</head>
+<body>
+  <header class="top">
+    <nav class="top-nav" aria-label="House">
+      <a href="/" class="on">Team</a>
+      <a href="/app" class="top-home" title="Home" aria-label="Home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 11.5 12 4l9 7.5"/>
+          <path d="M5 10v10h5v-6h4v6h5V10"/>
+        </svg>
+        <span class="visually-hidden">Home</span>
+      </a>
+      <a href="/tune">Tune</a>
+      <a href="/playlists">Playlists</a>
+    </nav>
+    <div class="top-end">
+      <div class="board-switch" role="group" aria-label="Attention or Action">
+        <a href="/work">Attention</a>
+        <a href="/tools?tab=actions">Action</a>
+      </div>
+      <button type="button" id="freq-badge" class="freq-badge" aria-label="Open today’s Drop">
+        <span id="freq-text">Peace</span>
+      </button>
+    </div>
+  </header>
+
+  <section id="drop" class="drop-bar">
+    <div>
+      <div class="drop-kicker">Today’s Drop</div>
+      <div id="drop-freq" class="drop-freq">—</div>
+      <div id="drop-meta" class="drop-meta">Loading…</div>
+    </div>
+    <div class="drop-links">
+      <a href="/work">Attention (Paperclip + badge)</a>
+      <a href="/tools">Action Board</a>
+      <a id="link-pc" href="http://127.0.0.1:3100" target="_blank" rel="noopener">Paperclip raw</a>
+      <a id="link-hermes" href="http://127.0.0.1:9119" target="_blank" rel="noopener">Hermes</a>
+    </div>
+  </section>
+
+  <p id="pc-error" class="err" hidden></p>
+
+  <section class="tune-settings" aria-label="Morning tuning settings">
+    <div class="tune-settings-head">
+      <div>
+        <div class="drop-kicker">Morning LTP</div>
+        <div class="tune-settings-title">Tuning model (independent of orchestrator)</div>
+      </div>
+      <label class="tune-toggle">
+        <input type="checkbox" id="ltp-enabled" />
+        <span>Tunings on</span>
+      </label>
+    </div>
+    <div class="tune-settings-row">
+      <label class="tune-field">
+        <span>Model</span>
+        <input type="text" id="ltp-model" placeholder="qwen3:8b" autocomplete="off" />
+      </label>
+      <label class="tune-field tune-field-wide">
+        <span>Ollama base URL</span>
+        <input type="text" id="ltp-base" placeholder="http://127.0.0.1:11434/v1" autocomplete="off" />
+      </label>
+      <button type="button" id="ltp-save" class="tune-save">Save</button>
+    </div>
+    <p id="ltp-status" class="tune-status" hidden></p>
+  </section>
+
+  <main id="roster" class="roster" aria-live="polite"></main>
+
+  <footer class="foot">
+    Vault-backed · Paperclip org · Hermes runtime · Heartbeats off until morning tune
+  </footer>
+
+  <div id="drop-overlay" class="modal-overlay" hidden>
+    <div class="modal-panel" role="dialog" aria-modal="true">
+      <header class="modal-head">
+        <div class="modal-title">Today’s Drop</div>
+        <button type="button" id="drop-close" class="modal-close" aria-label="Close">×</button>
+      </header>
+      <iframe id="drop-frame" class="modal-frame" title="Daily Drop" src="about:blank" allow="autoplay"></iframe>
+    </div>
+  </div>
+
+  <div id="echo-overlay" class="modal-overlay" hidden>
+    <div class="modal-panel modal-panel-text" role="dialog" aria-modal="true">
+      <header class="modal-head">
+        <div id="echo-title" class="modal-title">Echo / process record</div>
+        <button type="button" id="echo-close" class="modal-close" aria-label="Close">×</button>
+      </header>
+      <div id="echo-body" class="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="/static/team.js"></script>
+</body>
+</html>

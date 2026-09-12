@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" data-frequency="Peace">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <title>Observer — Lucid Cove on Hermes</title>
+  <link rel="stylesheet" href="/static/team.css" />
+</head>
+<body>
+  <header class="top">
+    <nav class="top-nav" aria-label="House">
+      <a href="/">Team</a>
+      <a href="/app" class="top-home" title="Home" aria-label="Home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 11.5 12 4l9 7.5"/>
+          <path d="M5 10v10h5v-6h4v6h5V10"/>
+        </svg>
+        <span class="visually-hidden">Home</span>
+      </a>
+      <a href="/tune">Tune</a>
+      <a href="/playlists">Playlists</a>
+    </nav>
+    <div class="top-end">
+      <div class="board-switch" role="group" aria-label="Attention or Action">
+        <a href="/work">Attention</a>
+        <a href="/tools?tab=actions">Action</a>
+      </div>
+      <button type="button" id="freq-badge" class="freq-badge" aria-label="Open today’s Drop">
+        <span id="freq-text">Peace</span>
+      </button>
+    </div>
+  </header>
+
+  <section id="drop" class="drop-bar">
+    <div>
+      <div class="drop-kicker">Today’s Drop</div>
+      <div id="drop-freq" class="drop-freq">—</div>
+      <div id="drop-meta" class="drop-meta">Loading…</div>
+    </div>
+  </section>
+
+  <main class="observer-page">
+    <a class="back" href="/">← Team</a>
+    <div id="observer"><p class="muted">Loading…</p></div>
+  </main>
+
+  <footer class="foot">
+    Vault-backed · Paperclip org · Hermes runtime · Heartbeats off until morning tune
+  </footer>
+
+  <div id="drop-overlay" class="modal-overlay" hidden>
+    <div class="modal-panel" role="dialog" aria-modal="true">
+      <header class="modal-head">
+        <div class="modal-title">Today’s Drop</div>
+        <button type="button" id="drop-close" class="modal-close" aria-label="Close">×</button>
+      </header>
+      <iframe id="drop-frame" class="modal-frame" title="Daily Drop" src="about:blank" allow="autoplay"></iframe>
+    </div>
+  </div>
+
+  <script src="/static/team.js"></script>
+</body>
+</html>

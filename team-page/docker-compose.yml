@@ -1,0 +1,32 @@
+# Team page sidecar — Lucid Cove on Hermes
+# From team-page/: docker compose up -d --build
+# Open http://127.0.0.1:3200/
+
+name: lucid-cove-team
+
+services:
+  team-page:
+    build:
+      context: ..
+      dockerfile: team-page/Dockerfile
+    image: lucid-cove-team:local
+    container_name: lucid-cove-team
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      LCH_VAULT: /vault
+      PAPERCLIP_URL: http://127.0.0.1:3100
+      PAPERCLIP_COMPANY_ID: ${PAPERCLIP_COMPANY_ID:-}
+      PAPERCLIP_PUBLIC_URL: http://127.0.0.1:3100
+      HERMES_PUBLIC_URL: http://127.0.0.1:9119
+      JULES_URL: ${JULES_URL:-/jules}
+      STEWART_NC_URL: ${STEWART_NC_URL:-}
+      STEWART_NC_USER: ${STEWART_NC_USER:-}
+      STEWART_NC_PASSWORD: ${STEWART_NC_PASSWORD:-}
+      JULES_VOICE_WS: ${JULES_VOICE_WS:-}
+      JULES_VOICE_HTTP: ${JULES_VOICE_HTTP:-}
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - ../vault:/vault

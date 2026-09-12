@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" data-frequency="Peace">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <title>Action Board — Lucid Cove on Hermes</title>
+  <link rel="stylesheet" href="/static/team.css" />
+  <link rel="stylesheet" href="/static/action-board.css" />
+</head>
+<body>
+  <header class="top">
+    <nav class="top-nav" aria-label="House">
+      <a href="/">Team</a>
+      <a href="/app" class="top-home" title="Home" aria-label="Home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 11.5 12 4l9 7.5"/>
+          <path d="M5 10v10h5v-6h4v6h5V10"/>
+        </svg>
+        <span class="visually-hidden">Home</span>
+      </a>
+      <a href="/tune">Tune</a>
+      <a href="/playlists">Playlists</a>
+    </nav>
+    <div class="top-end">
+      <div class="board-switch" role="group" aria-label="Attention or Action">
+        <a href="/work">Attention</a>
+        <a class="on" href="/tools?tab=actions">Action</a>
+      </div>
+      <button type="button" id="freq-badge" class="freq-badge" aria-label="Open today’s Drop">
+        <span id="freq-text">Peace</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="ab-content">
+    <div class="ab-header">
+      <h2>Action Board</h2>
+      <p class="ab-subtitle">Actions · Links · Flows · Tools — Lucid Cove overlay on Hermes</p>
+    </div>
+
+    <div class="ab-act-tabs" role="tablist" aria-label="Action Board sections">
+      <button type="button" class="ab-act-tab" data-tab="actions" role="tab">Actions</button>
+      <button type="button" class="ab-act-tab" data-tab="links" role="tab">Links</button>
+      <button type="button" class="ab-act-tab" data-tab="flows" role="tab">Flows</button>
+      <button type="button" class="ab-act-tab active" data-tab="tools" role="tab">Tools</button>
+    </div>
+
+    <section id="panel-actions" class="ab-panel ab-act-panel" hidden>
+      <div id="ab-actions-list"></div>
+    </section>
+    <section id="panel-links" class="ab-panel ab-act-panel" hidden>
+      <div id="ab-links-list"></div>
+    </section>
+    <section id="panel-flows" class="ab-panel" hidden>
+      <div class="ab-empty">No flows yet — guided creation flows come later.</div>
+    </section>
+    <section id="panel-tools" class="ab-panel ab-act-panel">
+      <div id="ab-tools-list"></div>
+    </section>
+  </main>
+
+  <div id="drop-overlay" class="modal-overlay" hidden>
+    <div class="modal-panel" role="dialog" aria-modal="true">
+      <header class="modal-head">
+        <div class="modal-title">Today’s Drop</div>
+        <button type="button" id="drop-close" class="modal-close" aria-label="Close">×</button>
+      </header>
+      <iframe id="drop-frame" class="modal-frame" title="Daily Drop" src="about:blank" allow="autoplay"></iframe>
+    </div>
+  </div>
+
+  <script src="/static/action-board.js"></script>
+</body>
+</html>

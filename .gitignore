@@ -1,0 +1,30 @@
+# Runtime / this house (never the overlay git)
+/data/
+upstream/
+backup-staging/
+.venv/
+**/.venv/
+paperclip/data/
+**/.env
+!**/.env.example
+.secrets/
+*.pat
+.git-credentials
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+node_modules/
+
+# Live vault brain — local only
+vault/ltp.sqlite
+vault/kb_index.sqlite
+vault/drop/
+vault/team/
+vault/tuner/
+vault/journal/
+vault/presence/
+vault/brand/
+vault/canon/
+vault/kb/
+vault/playbooks/
