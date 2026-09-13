@@ -28,3 +28,6 @@ vault/brand/
 vault/canon/
 vault/kb/
 vault/playbooks/
+
+# House-only (this install). Not the public pack.
+docs/overlay-deploy.md

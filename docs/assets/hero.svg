@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 340" role="img" aria-label="Lucid Cove on Hermes — house overlay for Hermes Agent">
+  <defs>
+    <style>
+      .wordmark { font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 48px; font-weight: 300; letter-spacing: 10px; fill: #e8e8ec; }
+      .tagline  { font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 19px; font-weight: 300; letter-spacing: 1.5px; fill: #b8b8c0; }
+      .sub      { font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 12px; font-weight: 400; letter-spacing: 4px; fill: #6a6a78; }
+      .pair     { font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 13px; font-weight: 500; letter-spacing: 3px; fill: #5ce1e6; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="340" rx="14" fill="#0a0a0f"/>
+
+  <!-- Cove arch (same mark as LucidPrinciples/lucid-cove) -->
+  <g transform="translate(88,62) scale(0.48)">
+    <path d="M 75,380 Q 75,130 250,55 Q 425,130 425,380" fill="none" stroke="#4682b4" stroke-width="12" stroke-linecap="butt"/>
+    <path d="M 150,380 Q 150,200 250,130 Q 350,200 350,380" fill="none" stroke="#5ce1e6" stroke-width="24" stroke-linecap="butt"/>
+    <line x1="69" y1="380" x2="431" y2="380" stroke="#4682b4" stroke-width="7" stroke-linecap="butt"/>
+    <circle cx="250" cy="282" r="15" fill="#5ce1e6"/>
+  </g>
+
+  <!-- Hermes node: small stacked profiles beside the arch -->
+  <g transform="translate(310,118)">
+    <rect x="0" y="0" width="44" height="28" rx="6" fill="none" stroke="#7c5cff" stroke-width="2"/>
+    <rect x="10" y="14" width="44" height="28" rx="6" fill="#0a0a0f" stroke="#5ce1e6" stroke-width="2"/>
+    <circle cx="32" cy="26" r="4" fill="#7c5cff"/>
+  </g>
+
+  <text class="sub" x="420" y="108">LUCID PRINCIPLES</text>
+  <text class="wordmark" x="416" y="168">LUCID COVE</text>
+  <text class="pair" x="420" y="204">ON HERMES</text>
+  <line x1="420" y1="228" x2="480" y2="228" stroke="#7c5cff" stroke-width="1" opacity="0.5"/>
+  <text class="tagline" x="420" y="262">House overlay for Hermes Agent.</text>
+  <text class="tagline" x="420" y="292">Your computer, your models, same Lucid Tuner account.</text>
+</svg>
