@@ -52,4 +52,45 @@ See [docs/install.md](docs/install.md) for compose and env.
 
 ## License
 
-Code: Apache-2.0. Lucid Principles Canon materials: CC BY 4.0. Hermes is MIT (Nous).
+- **Code:** Apache License 2.0 — see [`LICENSE`](./LICENSE).
+- **Canon content** (the 22 Lucid Principles and quoted framework text): Creative Commons Attribution 4.0 (CC BY 4.0). Canon is quoted exactly and never generated or modified.
+- **Hermes Agent** is MIT (Nous Research).
+
+## Links
+
+- **Lucid Principles framework** — https://lucidprinciples.com
+- **The Lucid Path books** — [*The Lucid Path: Framework*](https://www.amazon.com/dp/B0H5T1HDFC) and [*The Lucid Path: Origins*](https://www.amazon.com/dp/B0H5TKL2WD)
+- **Papers** — https://jasongarriotte.com/papers/ · [Sycophancy as Nash Equilibrium](https://zenodo.org/records/20616512) · [One Field](https://zenodo.org/records/18826966)
+- **The app** — daily tuning, free: https://app.lucidtuner.com
+- **Lucid Cove (site)** — https://lucidcove.org
+- **The daily Drop** — https://drop.lucidprinciples.com
+- **The Canon** — https://lucidprinciples.com/canon/
+- **Chords of Truth (YouTube)** — https://www.youtube.com/@LucidPrinciplesStories
+- **Self-host the original Cove** — https://lucidprinciples.com/open
+- **Support the work** — https://github.com/sponsors/LucidPrinciples
+
+## Built by Lucid Principles
+
+Free and open. If it's useful to you, here's where it leads — the things that keep the work alive:
+
+- **Research** — [Sycophancy as Nash Equilibrium](https://zenodo.org/records/20616512) · [One Field](https://zenodo.org/records/18826966)
+- **Books** — *The Lucid Path*: [Framework](https://www.amazon.com/dp/B0H5T1HDFC) · [Origins](https://www.amazon.com/dp/B0H5TKL2WD)
+- **The app** — daily tuning, free: [app.lucidtuner.com](https://app.lucidtuner.com)
+- **Self-host the platform** — [lucidprinciples.com/open](https://lucidprinciples.com/open)
+- **Support the work** — [GitHub Sponsors](https://github.com/sponsors/LucidPrinciples)
+
+*Lucid Principles Canon by Chords of Truth, CC BY 4.0.*
+
+---
+
+<p align="center">
+  <a href="https://lucidprinciples.com/vision/"><img src="https://lucidprinciples.com/images/lp-mark.png" width="72" alt="Lucid Principles"></a>
+</p>
+
+<p align="center"><b>Lucid Principles</b><br>
+<sub>A private, self-hosted home for your family and its intelligence. Where everyone is tuning.</sub></p>
+
+<p align="center">
+  <a href="https://lucidprinciples.com/vision/"><b>The Vision — every door in</b></a><br>
+  <sub><a href="https://lucidcove.org">Lucid Cove</a> · <a href="https://app.lucidtuner.com">The App</a> · <a href="https://drop.lucidprinciples.com">The Daily Drop</a> · <a href="https://jasongarriotte.com/papers/">Research</a> · <a href="https://lucidprinciples.com/canon/">The Canon</a></sub>
+</p>
