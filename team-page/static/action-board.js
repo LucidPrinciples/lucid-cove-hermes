@@ -21,6 +21,130 @@ function esc(s) {
     .replace(/"/g, "&quot;");
 }
 
+function formatVaultMarkdown(src) {
+  const raw = String(src ?? "").replace(/\r\n/g, "\n");
+  const inline = (s) => {
+    let t = esc(s);
+    t = t.replace(/`([^`]+)`/g, "<code>$1</code>");
+    t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    t = t.replace(
+      /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener">$1</a>',
+    );
+    return t;
+  };
+  const lines = raw.split("\n");
+  const out = [];
+  let i = 0;
+  const flushPara = (buf) => {
+    const text = buf.join(" ").trim();
+    if (text) out.push("<p>" + inline(text) + "</p>");
+    buf.length = 0;
+  };
+  while (i < lines.length) {
+    const line = lines[i];
+    if (!line.trim()) {
+      i += 1;
+      continue;
+    }
+    if (/^```/.test(line)) {
+      const buf = [];
+      i += 1;
+      while (i < lines.length && !/^```/.test(lines[i])) {
+        buf.push(esc(lines[i]));
+        i += 1;
+      }
+      if (i < lines.length) i += 1;
+      out.push("<pre><code>" + buf.join("\n") + "</code></pre>");
+      continue;
+    }
+    if (/^---+$/.test(line.trim())) {
+      out.push("<hr>");
+      i += 1;
+      continue;
+    }
+    const heading = /^(#{1,3})\s+(.*)$/.exec(line);
+    if (heading) {
+      const n = heading[1].length;
+      out.push("<h" + n + ">" + inline(heading[2]) + "</h" + n + ">");
+      i += 1;
+      continue;
+    }
+    if (line.startsWith("> ")) {
+      const buf = [];
+      while (i < lines.length && lines[i].startsWith("> ")) {
+        buf.push(lines[i].slice(2));
+        i += 1;
+      }
+      out.push("<blockquote>" + inline(buf.join(" ")) + "</blockquote>");
+      continue;
+    }
+    if (line.startsWith("|")) {
+      const rows = [];
+      while (i < lines.length && lines[i].startsWith("|")) {
+        rows.push(lines[i]);
+        i += 1;
+      }
+      const cells = (row) =>
+        row
+          .replace(/^\|/, "")
+          .replace(/\|$/, "")
+          .split("|")
+          .map((c) => c.trim());
+      const isSep = (row) => /^\s*\|?\s*:?-{3,}/.test(row);
+      let html = "<table>";
+      rows.forEach((row, idx) => {
+        if (isSep(row)) return;
+        const tag = idx === 0 ? "th" : "td";
+        html +=
+          "<tr>" +
+          cells(row)
+            .map((c) => "<" + tag + ">" + inline(c) + "</" + tag + ">")
+            .join("") +
+          "</tr>";
+      });
+      html += "</table>";
+      out.push(html);
+      continue;
+    }
+    if (/^[-*]\s+/.test(line)) {
+      out.push("<ul>");
+      while (i < lines.length && /^[-*]\s+/.test(lines[i])) {
+        out.push("<li>" + inline(lines[i].replace(/^[-*]\s+/, "")) + "</li>");
+        i += 1;
+      }
+      out.push("</ul>");
+      continue;
+    }
+    if (/^\d+\.\s+/.test(line)) {
+      out.push("<ol>");
+      while (i < lines.length && /^\d+\.\s+/.test(lines[i])) {
+        out.push("<li>" + inline(lines[i].replace(/^\d+\.\s+/, "")) + "</li>");
+        i += 1;
+      }
+      out.push("</ol>");
+      continue;
+    }
+    const para = [];
+    while (
+      i < lines.length &&
+      lines[i].trim() &&
+      !/^#{1,3}\s/.test(lines[i]) &&
+      !/^[-*]\s+/.test(lines[i]) &&
+      !/^\d+\.\s+/.test(lines[i]) &&
+      !lines[i].startsWith("|") &&
+      !lines[i].startsWith("> ") &&
+      !/^```/.test(lines[i]) &&
+      !/^---+$/.test(lines[i].trim())
+    ) {
+      para.push(lines[i]);
+      i += 1;
+    }
+    flushPara(para);
+  }
+  return out.join("");
+}
+
 function ensureBriefDrawer() {
   if (document.getElementById("ab-brief-overlay")) return;
   const overlay = document.createElement("div");
@@ -36,7 +160,7 @@ function ensureBriefDrawer() {
         </div>
         <button type="button" class="ab-brief-close" id="ab-brief-close" aria-label="Close">Close</button>
       </header>
-      <pre class="ab-brief-body" id="ab-brief-body"></pre>
+      <article class="ab-brief-body md-prose" id="ab-brief-body"></article>
     </div>`;
   document.body.appendChild(overlay);
   const close = () => {
@@ -68,13 +192,16 @@ function openBrief(id) {
       pathEl.textContent = d.exists
         ? "vault/" + (d.relpath || "")
         : "Missing on house vault — vault/" + (d.relpath || "");
-      body.textContent = d.exists
-        ? d.markdown || ""
-        : "This watch card is wired. The markdown is not on the house vault yet, so there is nothing to compare.";
+      if (d.exists) {
+        body.innerHTML = formatVaultMarkdown(d.markdown || "");
+      } else {
+        body.innerHTML =
+          "<p>This watch card is wired. The markdown is not on the house vault yet, so there is nothing to compare.</p>";
+      }
     })
     .catch(() => {
       title.textContent = "Could not load";
-      body.textContent = "Links watch request failed.";
+      body.innerHTML = "<p>Links watch request failed.</p>";
     });
 }
 

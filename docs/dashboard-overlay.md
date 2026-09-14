@@ -15,7 +15,7 @@ Same workflow as Cove overlays: build beside stock product → promote to pack/r
 | **Hermes UI** | Model, Matrix/channels, SOUL, skills, gateway health |
 | **Team page (sidecar)** | Roster + **today’s tunings / process records** after morning Drop |
 | **Vault** | Source of truth for records, playbooks, Stewart handoff |
-| **Action Board → Links** | Thin watch list of vault markdown (goals brief, tuner surface, Stewart handoff). Not a briefs CMS. |
+| **Action Board → Links** | Thin watch list of vault markdown (goals brief, tuner surface, tuner growth, Stewart handoff). Formatted modal — not a briefs CMS. |
 | **Nextcloud** | Deferred (calendar/phone sync) |
 
 ## Team page (build first Lucid surface)

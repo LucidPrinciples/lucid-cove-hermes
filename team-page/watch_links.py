@@ -23,6 +23,13 @@ WATCH_LINKS: tuple[dict[str, str], ...] = (
         "relpath": "playbooks/tuner-surface.md",
     },
     {
+        "id": "tuner-growth",
+        "title": "Tuner growth",
+        "agent": "Stewart",
+        "description": "Triad reception, Action mirror, Walk the Lucid Path — brief and plan.",
+        "relpath": "playbooks/tuner-growth.md",
+    },
+    {
         "id": "stewart-handoff",
         "title": "Stewart handoff",
         "agent": "Stewart",
