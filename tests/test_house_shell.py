@@ -179,6 +179,17 @@ class HouseShellTests(unittest.TestCase):
         self.assertIn("not skipping", err)
         self.assertNotIn("setTimeout(() => otNext(), 1500)", err)
 
+    def test_player_maps_bare_clear_folder_to_clear_signal(self) -> None:
+        panel = (STATIC / "tuner" / "tuning-panel.js").read_text(encoding="utf-8")
+        url_fn = panel[panel.index("function otGetAudioUrl") : panel.index("function otGetCoverUrl")]
+        self.assertIn("otSignalToFolder(t && t.folder)", url_fn)
+        self.assertNotIn("+ '/' + t.folder + '/' + t.filename", url_fn)
+        self.assertIn("otSignalToFolder(t.folder || t.signalType || t.signal_type || t.album || signalFolder)", panel)
+        flow = (STATIC / "tuner" / "tune-flow.js").read_text(encoding="utf-8")
+        self.assertIn("otSignalToFolder(t.folder || t.signalType || t.signal_type || t.album || signalFolder)", flow)
+        self.assertNotIn("const folder = t.folder || t.signal_type || signalFolder;", flow)
+        self.assertNotIn("const fd = t.folder || t.signal_type || signalFolder;", flow)
+
 
 if __name__ == "__main__":
     unittest.main()
