@@ -48,6 +48,17 @@ const GENRE_ALBUMS = [
 
 let _playlistsLoaded = false;
 
+/** Scroll only #house-shell. Element.scrollIntoView pans iOS visual viewport and hides .top. */
+function _plRevealPlayerMount() {
+    const mount = document.getElementById('plPlayerMount');
+    const shell = document.getElementById('house-shell');
+    if (!mount || !shell) return;
+    const m = mount.getBoundingClientRect();
+    const s = shell.getBoundingClientRect();
+    const next = shell.scrollTop + (m.top - s.top) - 8;
+    shell.scrollTo({ top: Math.max(0, next), behavior: 'smooth' });
+}
+
 /** Mini-player landed here: show the file that is actually playing, not track 0 / a stale Tune list. */
 function _plRestoreNowPlaying() {
     const mount = document.getElementById('plPlayerMount');
@@ -63,9 +74,7 @@ function _plRestoreNowPlaying() {
     if (typeof otPlaylistVisible !== 'undefined') otPlaylistVisible = true;
     if (typeof otRenderPlayer === 'function') otRenderPlayer('plPlayerMount');
     if (typeof otRenderPlaylist === 'function') otRenderPlaylist();
-    mount.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    const active = mount.querySelector('.ot-pl-track.active');
-    if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    _plRevealPlayerMount();
 }
 
 async function loadPlaylistsTab() {
@@ -189,8 +198,7 @@ function _plPlayFavorites() {
             mountId: 'plPlayerMount'
         });
 
-        const mount = document.getElementById('plPlayerMount');
-        if (mount) mount.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        _plRevealPlayerMount();
     }
 }
 
@@ -252,8 +260,7 @@ function _plBuildAndPlay(folder, label, color) {
             mountId: 'plPlayerMount'
         });
 
-        const mount = document.getElementById('plPlayerMount');
-        if (mount) mount.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        _plRevealPlayerMount();
     }
 }
 
@@ -287,8 +294,7 @@ function _plBuildGenreAndPlay(folder, label, color) {
             mountId: 'plPlayerMount'
         });
 
-        const mount = document.getElementById('plPlayerMount');
-        if (mount) mount.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        _plRevealPlayerMount();
     }
 }
 
