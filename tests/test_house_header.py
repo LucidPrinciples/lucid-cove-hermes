@@ -145,6 +145,7 @@ class HouseHeaderTests(unittest.TestCase):
     def test_playlists_scroll_shell_not_viewport(self) -> None:
         js = (STATIC / "tuner" / "playlists.js").read_text(encoding="utf-8")
         self.assertNotIn(".scrollIntoView(", js)
+        self.assertNotIn("scrollTo(", js)
         self.assertIn("function _plRevealPlayerMount", js)
 
     def test_action_board_honors_tab_query(self) -> None:
