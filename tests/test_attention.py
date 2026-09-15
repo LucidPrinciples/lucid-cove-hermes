@@ -128,6 +128,8 @@ class SameOriginProxyHelpersTests(unittest.TestCase):
         self.assertIn("History.prototype.pushState", html)
         self.assertIn("masked", html)
         self.assertIn("history.state", html)
+        self.assertIn("seed(history.state)", html)
+        self.assertNotIn("seed(history.state,p+'/')", html)
         self.assertIn("/attn/pc/x", html)
         self.assertNotIn("http://127.0.0.1:3100", html)
 
