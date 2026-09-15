@@ -25,6 +25,7 @@ body.house .top {
 }
 #house-shell {
   min-height: 0;
+  height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
@@ -41,8 +42,8 @@ body.house .top {
   overflow: visible;
 }
 #pane-work {
-  flex: 1;
   min-height: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
 }
