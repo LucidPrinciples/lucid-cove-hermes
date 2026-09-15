@@ -16,7 +16,7 @@ class HelpContactTests(unittest.TestCase):
         css = (STATIC / "house.css").read_text(encoding="utf-8")
         self.assertIn('id="help-contact-form"', html)
         self.assertIn('id="help-contact-message"', html)
-        self.assertIn('id="help-contact-email"', html)
+        self.assertNotIn('id="help-contact-email"', html)
         self.assertIn("/api/contact", js)
         self.assertIn("help-contact-form", css)
         self.assertNotIn("sendFeedback", html)
