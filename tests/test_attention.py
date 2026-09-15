@@ -20,6 +20,7 @@ from attention import (  # noqa: E402
     join_backend,
     is_house_reserved,
     pick_attention_frame,
+    paperclip_org_frame,
     referer_attn_kind,
     rewrite_html,
     rewrite_location,
@@ -39,6 +40,18 @@ class PickAttentionFrameTests(unittest.TestCase):
         self.assertEqual(frame["source"], "paperclip")
         self.assertEqual(frame["url"], FRAME_PC)
         self.assertNotIn("127.0.0.1", frame["url"])
+
+    def test_paperclip_org_prefix_opens_full_dashboard(self) -> None:
+        frame = pick_attention_frame(
+            paperclip_ok=True,
+            hermes_ok=True,
+            issue_prefix="LUC",
+        )
+        self.assertEqual(frame["url"], "/attn/pc/LUC/dashboard")
+        self.assertNotIn("127.0.0.1", frame["url"])
+        self.assertEqual(paperclip_org_frame("LUC"), "/attn/pc/LUC/dashboard")
+        self.assertEqual(paperclip_org_frame("../x"), FRAME_PC)
+        self.assertEqual(paperclip_org_frame(""), FRAME_PC)
 
     def test_hermes_kanban_when_paperclip_is_down(self) -> None:
         frame = pick_attention_frame(
@@ -182,13 +195,18 @@ class AttentionApiTests(unittest.TestCase):
         async def fake_probe(url: str) -> bool:
             return True
 
+        async def fake_prefix() -> str:
+            return "LUC"
+
         client = TestClient(team_app.app)
-        with patch.object(team_app, "_probe_http", side_effect=fake_probe):
+        with patch.object(team_app, "_probe_http", side_effect=fake_probe), patch.object(
+            team_app, "_paperclip_issue_prefix", side_effect=fake_prefix
+        ):
             r = client.get("/api/attention")
         self.assertEqual(r.status_code, 200)
         body = r.json()
         self.assertEqual(body["source"], "paperclip")
-        self.assertEqual(body["url"], FRAME_PC)
+        self.assertEqual(body["url"], "/attn/pc/LUC/dashboard")
         self.assertNotIn("127.0.0.1", body["url"])
 
     def test_attn_proxy_does_not_forward_house_host(self) -> None:

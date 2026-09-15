@@ -218,6 +218,34 @@ async def _paperclip_agents() -> list[dict[str, Any]]:
     return agents if isinstance(agents, list) else []
 
 
+async def _paperclip_issue_prefix() -> str:
+    """Live Paperclip org path token (e.g. LUC). Never a company UUID."""
+    url = f"{PAPERCLIP_URL}/api/companies"
+    try:
+        async with httpx.AsyncClient(timeout=8.0) as client:
+            r = await client.get(url)
+            r.raise_for_status()
+            raw = r.json()
+    except Exception:
+        return ""
+    rows = raw if isinstance(raw, list) else (raw.get("companies") or raw.get("items") or [])
+    if not isinstance(rows, list):
+        return ""
+    wanted = str(COMPANY_ID or "")
+    picked = None
+    for c in rows:
+        if not isinstance(c, dict):
+            continue
+        if wanted and str(c.get("id") or "") == wanted:
+            picked = c
+            break
+        if picked is None:
+            picked = c
+    if not isinstance(picked, dict):
+        return ""
+    return str(picked.get("issuePrefix") or picked.get("issue_prefix") or "")
+
+
 def _slug(name: str) -> str:
     return "".join(c for c in name.lower() if c.isalnum() or c in "-_")
 
@@ -880,11 +908,13 @@ async def attention():
     """Paperclip when it is up; else Hermes Kanban; else an empty pane."""
     paperclip_ok = await _probe_http(PAPERCLIP_URL)
     hermes_ok = await _probe_http(f"{HERMES_PUBLIC}/api/status")
+    issue_prefix = await _paperclip_issue_prefix() if paperclip_ok else ""
     frame = pick_attention_frame(
         paperclip_ok=paperclip_ok,
         hermes_ok=hermes_ok,
         paperclip_url=PAPERCLIP_PUBLIC,
         hermes_url=HERMES_PUBLIC,
+        issue_prefix=issue_prefix,
     )
     return JSONResponse({
         **frame,
