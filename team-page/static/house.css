@@ -238,13 +238,14 @@ body.house-free .board-switch {
     min-width: 0;
   }
   body.house .top-end {
-    flex: 1 0 100%;
-    width: 100%;
-    margin-left: 0;
+    flex: 0 0 auto;
+    width: auto;
+    max-width: 100%;
+    margin-left: auto;
     min-width: 0;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    row-gap: 0.4rem;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    column-gap: 0.5rem;
   }
 }
 
