@@ -35,6 +35,7 @@ import connect as lch_connect
 import watch_links
 import board_actions
 from ltp_settings import list_models, normalize_model
+import contact as lch_contact
 
 VAULT = Path(os.environ.get("LCH_VAULT", Path(__file__).resolve().parent.parent / "vault"))
 PACK = Path(os.environ.get("LCH_PACK", Path(__file__).resolve().parent.parent / "pack"))
@@ -515,6 +516,53 @@ async def jules_status():
         "inbox": jules_nc.JULES_NC_PATH,
         "voice_ws": _jules_voice_ws(),
     })
+
+
+@app.post("/api/contact")
+async def house_contact(request: Request):
+    """Forward Help messages to the public contact inbox (Haven MC Messages)."""
+    import httpx
+
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse({"ok": False, "detail": "Invalid JSON"}, status_code=400)
+    if not isinstance(body, dict):
+        return JSONResponse({"ok": False, "detail": "Invalid JSON"}, status_code=400)
+    message = str(body.get("message") or "").strip()
+    email = str(body.get("email") or "").strip()
+    if not message:
+        return JSONResponse({"ok": False, "detail": "Message is required"}, status_code=400)
+    if len(message) > 5000:
+        return JSONResponse({"ok": False, "detail": "Message too long (max 5000 characters)"}, status_code=400)
+    if not email or "@" not in email or "." not in email.split("@")[-1]:
+        return JSONResponse({"ok": False, "detail": "Email is required"}, status_code=400)
+    dest = lch_contact.ingest_url()
+    if not dest:
+        return JSONResponse({"ok": False, "detail": "Contact inbox is not configured"}, status_code=501)
+    state = lch_connect.load_state(VAULT)
+    payload = lch_contact.build_forward_payload(
+        body,
+        host=request.headers.get("host") or "",
+        path=str(body.get("path") or ""),
+        handle=state.get("handle") or "",
+        connected=bool(state.get("connected")),
+    )
+    try:
+        async with httpx.AsyncClient(timeout=12.0) as client:
+            res = await client.post(dest, json=payload)
+    except httpx.RequestError as exc:
+        return JSONResponse({"ok": False, "detail": f"Inbox unreachable ({type(exc).__name__})"}, status_code=502)
+    try:
+        data = res.json()
+    except Exception:
+        data = {}
+    if res.is_success and isinstance(data, dict) and data.get("ok"):
+        return JSONResponse({"ok": True, "message": data.get("message") or "Message sent."})
+    detail = data.get("detail") if isinstance(data, dict) else None
+    if not isinstance(detail, str) or not detail:
+        detail = "Failed to send."
+    return JSONResponse({"ok": False, "detail": detail}, status_code=min(max(res.status_code, 400), 502))
 
 
 @app.get("/api/config")
