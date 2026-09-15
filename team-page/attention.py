@@ -227,7 +227,7 @@ def _location_shim(prefix: str) -> str:
     URL becomes the company prefix, so /attn/pc/ is org ATTN. Location.prototype
     pathname is unforgeable in Chromium, so a getter patch is not enough.
     React Router createBrowserHistory reads history.state.masked first, then
-    window.location. Seed masked to / and keep it stripped on push/replace.
+    window.location. Seed masked to the stripped current path (e.g. /LUC/dashboard).
     """
     p = json.dumps((prefix or "").rstrip("/") or prefix)
     return (
@@ -258,7 +258,7 @@ def _location_shim(prefix: str) -> str:
         "var ps=History.prototype.pushState,rs=History.prototype.replaceState;"
         "History.prototype.pushState=function(s,t,u){if(typeof u==='string')u=add(u);return ps.call(this,seed(s,u),t,u);};"
         "History.prototype.replaceState=function(s,t,u){if(typeof u==='string')u=add(u);return rs.call(this,seed(s,u),t,u);};"
-        "try{rs.call(history,seed(history.state,p+'/'),'',location.pathname+location.search+location.hash);}catch(e){}"
+        "try{rs.call(history,seed(history.state),'',location.pathname+location.search+location.hash);}catch(e){}"
         "})();</script>"
     )
 
