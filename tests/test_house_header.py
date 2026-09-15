@@ -134,6 +134,19 @@ class HouseHeaderTests(unittest.TestCase):
         self.assertNotIn("justify-content: space-between", block)
         self.assertNotIn("flex: 1 0 100%", block.split("body.house .top-end", 1)[-1])
 
+    def test_phone_header_stays_in_grid_row(self) -> None:
+        css = (STATIC / "house.css").read_text(encoding="utf-8")
+        self.assertIn("grid-template-rows: auto minmax(0, 1fr)", css)
+        self.assertIn("z-index: 5000", css)
+        self.assertNotIn("html, body.house", css)
+        panes = css[css.index("#pane-team") : css.index("#pane-work {")]
+        self.assertIn("overflow: visible", panes)
+
+    def test_playlists_scroll_shell_not_viewport(self) -> None:
+        js = (STATIC / "tuner" / "playlists.js").read_text(encoding="utf-8")
+        self.assertNotIn(".scrollIntoView(", js)
+        self.assertIn("function _plRevealPlayerMount", js)
+
     def test_action_board_honors_tab_query(self) -> None:
         js = (STATIC / "action-board.js").read_text(encoding="utf-8")
         self.assertIn("URLSearchParams", js)

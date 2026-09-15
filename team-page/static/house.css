@@ -1,19 +1,34 @@
-/* House shell: header + one stage + mini-player. Do not cover .top. */
-html, body.house {
+/* Phone: two-row .top plus nested pane scroll + 100% flex lets iOS pan the
+   visual viewport so only the bottom half of the header stays. Grid pins
+   .top; only #house-shell scrolls. */
+html {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  display: block;
+  overscroll-behavior: none;
+}
+body.house {
   margin: 0;
   height: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  overscroll-behavior: none;
 }
 body.house .top {
-  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 5000;
 }
 #house-shell {
-  flex: 1;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 .house-pane[hidden] {
   display: none !important;
@@ -22,9 +37,8 @@ body.house .top {
 #pane-tuner,
 #pane-observer,
 #pane-app {
-  flex: 1;
   min-height: 0;
-  overflow: auto;
+  overflow: visible;
 }
 #pane-work {
   flex: 1;
@@ -42,8 +56,13 @@ body.house {
   --mp-freq-color: #5ce1e6;
 }
 body.house .mini-player {
+  position: fixed;
+  left: 0;
+  right: 0;
   bottom: 0;
   height: 68px;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  z-index: 4000;
   background: rgba(18, 18, 26, 0.94);
   border-top: 1px solid color-mix(in srgb, var(--mp-freq-color) 38%, transparent);
   box-shadow: 0 -10px 32px rgba(124, 92, 255, 0.14);
