@@ -17,6 +17,15 @@ PREFIX_PC = "/attn/pc"
 PREFIX_HM = "/attn/hm"
 FRAME_PC = PREFIX_PC + "/"
 FRAME_HM_KANBAN = PREFIX_HM + "/kanban"
+_ISSUE_PREFIX = re.compile(r"^[A-Za-z][A-Za-z0-9]{0,15}$")
+
+
+def paperclip_org_frame(issue_prefix: str = "") -> str:
+    """Paperclip's full org shell is /{issuePrefix}/dashboard, not /."""
+    token = (issue_prefix or "").strip()
+    if _ISSUE_PREFIX.fullmatch(token):
+        return f"{PREFIX_PC}/{token}/dashboard"
+    return FRAME_PC
 
 _HOUSE_EXACT = {
     "/",
@@ -88,11 +97,12 @@ def pick_attention_frame(
     hermes_ok: bool,
     paperclip_url: str = "",
     hermes_url: str = "",
+    issue_prefix: str = "",
 ) -> dict[str, str]:
     """Same-origin iframe. paperclip_url / hermes_url are unused (loopback)."""
     _ = (paperclip_url, hermes_url)
     if paperclip_ok:
-        return {"source": "paperclip", "url": FRAME_PC, "title": "Paperclip"}
+        return {"source": "paperclip", "url": paperclip_org_frame(issue_prefix), "title": "Paperclip"}
     if hermes_ok:
         return {"source": "hermes", "url": FRAME_HM_KANBAN, "title": "Hermes Kanban"}
     return {"source": "none", "url": "", "title": "Attention"}
