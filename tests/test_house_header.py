@@ -123,6 +123,17 @@ class HouseHeaderTests(unittest.TestCase):
                 self.assertIn('id="freq-badge"', html, msg=name)
                 self.assertIn('id="freq-text"', html, msg=name)
 
+    def test_thin_header_packs_end_icons_right(self) -> None:
+        css = (STATIC / "house.css").read_text(encoding="utf-8")
+        start = css.find("@media (max-width: 800px)")
+        self.assertGreater(start, -1)
+        block = css[start : start + 700]
+        self.assertIn("body.house .top-end", block)
+        self.assertIn("justify-content: flex-end", block)
+        self.assertIn("margin-left: auto", block)
+        self.assertNotIn("justify-content: space-between", block)
+        self.assertNotIn("flex: 1 0 100%", block.split("body.house .top-end", 1)[-1])
+
     def test_action_board_honors_tab_query(self) -> None:
         js = (STATIC / "action-board.js").read_text(encoding="utf-8")
         self.assertIn("URLSearchParams", js)
