@@ -4,13 +4,15 @@ Reads Paperclip agents API + vault/ for Drop + per-agent latest.json.
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import os
+import re
 from pathlib import Path
 from typing import Any
 
 import httpx
-from fastapi import FastAPI, File, Form, Request, UploadFile
+from fastapi import FastAPI, File, Form, Request, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
@@ -21,11 +23,14 @@ from attention import (
     backend_origin,
     hop_skip_request,
     hop_skip_response,
+    is_css_content_type,
     is_house_reserved,
     is_html_content_type,
+    is_paperclip_static_path,
     join_backend,
     pick_attention_frame,
     referer_attn_kind,
+    rewrite_css,
     rewrite_html,
     rewrite_location,
     rewrite_referer_to_backend,
@@ -370,6 +375,17 @@ async def _attn_proxy(request: Request, kind: str, path: str) -> Response:
             text = payload.decode("utf-8", errors="replace")
         payload = rewrite_html(text, prefix, backend).encode("utf-8")
         html_rewritten = True
+    elif is_css_content_type(upstream.headers.get("content-type") or ""):
+        encoding = (
+            getattr(upstream, "charset_encoding", None)
+            or getattr(upstream, "encoding", None)
+            or "utf-8"
+        )
+        try:
+            text = payload.decode(encoding, errors="replace")
+        except LookupError:
+            text = payload.decode("utf-8", errors="replace")
+        payload = rewrite_css(text, prefix).encode("utf-8")
     out = Response(content=payload, status_code=upstream.status_code)
     for key, value in upstream.headers.items():
         if hop_skip_response(key) or key.lower() == "set-cookie":
@@ -387,8 +403,10 @@ async def _attn_proxy(request: Request, kind: str, path: str) -> Response:
 @app.middleware("http")
 async def _attn_referer_proxy(request, call_next):
     """SPA assets use root paths (/assets, /api/…). Send those to the iframe backend."""
-    kind = referer_attn_kind(request.headers.get("referer") or "")
     path = request.url.path
+    if is_paperclip_static_path(path):
+        return await _attn_proxy(request, "pc", path)
+    kind = referer_attn_kind(request.headers.get("referer") or "")
     if kind and not is_house_reserved(path):
         return await _attn_proxy(request, kind, path)
     return await call_next(request)
@@ -931,6 +949,54 @@ async def attention():
 @app.api_route("/attn/pc/{path:path}", methods=_ATTN_METHODS)
 async def attn_paperclip(request: Request, path: str = ""):
     return await _attn_proxy(request, "pc", path)
+
+
+_PC_WS_ID = re.compile(
+    r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+)
+
+
+async def _paperclip_events_ws(websocket: WebSocket, company_id: str) -> None:
+    if not _PC_WS_ID.fullmatch(company_id or ""):
+        await websocket.close(code=1008)
+        return
+    backend = PAPERCLIP_URL.replace("https://", "wss://").replace("http://", "ws://")
+    upstream_url = f"{backend}/api/companies/{company_id}/events/ws"
+    await websocket.accept()
+    try:
+        import websockets
+    except ImportError:
+        await websocket.close(code=1011)
+        return
+    try:
+        async with websockets.connect(upstream_url, open_timeout=8) as upstream:
+            async def browser_to_pc() -> None:
+                try:
+                    while True:
+                        message = await websocket.receive_text()
+                        await upstream.send(message)
+                except WebSocketDisconnect:
+                    await upstream.close()
+
+            async def pc_to_browser() -> None:
+                async for message in upstream:
+                    if isinstance(message, bytes):
+                        await websocket.send_bytes(message)
+                    else:
+                        await websocket.send_text(message)
+
+            await asyncio.gather(browser_to_pc(), pc_to_browser())
+    except Exception:
+        try:
+            await websocket.close()
+        except Exception:
+            pass
+
+
+@app.websocket("/attn/pc/api/companies/{company_id}/events/ws")
+@app.websocket("/api/companies/{company_id}/events/ws")
+async def attn_paperclip_events_ws(websocket: WebSocket, company_id: str):
+    await _paperclip_events_ws(websocket, company_id)
 
 
 @app.api_route("/attn/hm", methods=_ATTN_METHODS)

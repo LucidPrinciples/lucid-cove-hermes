@@ -22,7 +22,7 @@ function hideAttentionEmbed(hidden) {
 }
 
 async function loadAttention() {
-  if (!pcFrame || attentionLoaded) return;
+  if (!pcFrame) return;
   try {
     const res = await fetch("/api/attention", { credentials: "same-origin" });
     const data = await res.json().catch(() => ({}));
@@ -39,7 +39,7 @@ async function loadAttention() {
     if (pcEmpty) pcEmpty.hidden = true;
     pcFrame.hidden = false;
     pcFrame.title = (data && data.title) || "Attention";
-    pcFrame.src = url;
+    if (pcFrame.getAttribute("src") !== url) pcFrame.src = url;
     attentionLoaded = true;
   } catch (_) {
     if (pcEmbed) pcEmbed.classList.remove("pc-embed--hermes");

@@ -280,6 +280,7 @@ def _fetch_shim(prefix: str) -> str:
         "return f.call(this,i,n);};"
         "var o=XMLHttpRequest.prototype.open;"
         "XMLHttpRequest.prototype.open=function(m,u){arguments[1]=fix(u);return o.apply(this,arguments);};"
+        "var W=window.WebSocket;if(W){window.WebSocket=function(u,r){if(typeof u===\"string\"){u=fix(u);if(u.slice(0,4)===\"http\")u=\"ws\"+u.slice(4);}return r===undefined?new W(u):new W(u,r);};window.WebSocket.prototype=W.prototype;}"
         "})();</script>"
     )
 
@@ -315,3 +316,25 @@ def hop_skip_response(name: str) -> bool:
 def is_html_content_type(content_type: str) -> bool:
     ct = (content_type or "").lower()
     return "text/html" in ct or "application/xhtml" in ct
+
+
+def is_css_content_type(content_type: str) -> bool:
+    return "text/css" in (content_type or "").lower()
+
+
+def rewrite_css(css: str, prefix: str) -> str:
+    """url(/fonts/…) from Paperclip CSS hits the house origin unless prefixed."""
+    pref = (prefix or "").rstrip("/")
+    if not pref:
+        return css
+    for quote in ("", "'", '"'):
+        css = css.replace(f"url({quote}/fonts/", f"url({quote}{pref}/fonts/")
+        css = css.replace(f"url({quote}/assets/", f"url({quote}{pref}/assets/")
+    return css
+
+
+def is_paperclip_static_path(path: str) -> bool:
+    p = path or ""
+    if not p.startswith("/"):
+        p = "/" + p
+    return p.startswith("/fonts/") or p.startswith("/assets/") or p == "/favicon.ico"
