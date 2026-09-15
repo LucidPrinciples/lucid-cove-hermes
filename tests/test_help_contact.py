@@ -65,6 +65,31 @@ class HelpContactTests(unittest.TestCase):
         self.assertEqual(payload["connected"], "yes")
         self.assertEqual(payload["message"], "Hi")
 
+    def test_forward_payload_uses_connected_account(self) -> None:
+        import sys
+
+        team = str(ROOT / "team-page")
+        if team not in sys.path:
+            sys.path.insert(0, team)
+        import contact as lch_contact
+
+        payload = lch_contact.build_forward_payload(
+            {"message": "Hi"},
+            host="house.example",
+            path="/app",
+            handle="jagcot",
+            connected=True,
+            email="a@example.com",
+            name="Jason",
+        )
+        self.assertEqual(payload["email"], "a@example.com")
+        self.assertEqual(payload["name"], "Jason")
+
+    def test_house_contact_looks_up_connected_account(self) -> None:
+        app = (ROOT / "team-page" / "app.py").read_text(encoding="utf-8")
+        self.assertIn("verify_claim", app)
+        self.assertIn("operator_token_path", app)
+
 
 if __name__ == "__main__":
     unittest.main()

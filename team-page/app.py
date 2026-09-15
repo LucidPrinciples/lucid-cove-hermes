@@ -538,12 +538,29 @@ async def house_contact(request: Request):
     if not dest:
         return JSONResponse({"ok": False, "detail": "Contact inbox is not configured"}, status_code=501)
     state = lch_connect.load_state(VAULT)
+    handle = state.get("handle") or ""
+    email = ""
+    name = str(body.get("name") or "")
+    token = ""
+    try:
+        token_path = lch_connect.operator_token_path(VAULT)
+        if token_path.is_file():
+            token = token_path.read_text(encoding="utf-8").strip()
+    except OSError:
+        token = ""
+    if handle and token:
+        claim = await lch_connect.verify_claim(handle, token)
+        if claim.get("ok"):
+            email = str(claim.get("email") or "")
+            name = str(claim.get("name") or name)
     payload = lch_contact.build_forward_payload(
         body,
         host=request.headers.get("host") or "",
         path=str(body.get("path") or ""),
-        handle=state.get("handle") or "",
+        handle=handle,
         connected=bool(state.get("connected")),
+        email=email,
+        name=name,
     )
     try:
         async with httpx.AsyncClient(timeout=12.0) as client:
