@@ -52,6 +52,9 @@ body.house .top {
 body.has-mini-player #house-shell {
   padding-bottom: 68px;
 }
+body.has-mini-player .mini-player {
+  display: flex !important;
+}
 body.house {
   --mp-freq-color: #5ce1e6;
 }

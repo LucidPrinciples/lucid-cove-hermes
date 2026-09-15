@@ -206,16 +206,19 @@ function closeEchoModal() {
   if (overlay) overlay.hidden = true;
 }
 
-function openDropPlayer() {
-  const overlay = document.getElementById("drop-overlay");
-  const frame = document.getElementById("drop-frame");
-  if (!overlay || !frame) return;
-  if (typeof otAudio !== "undefined" && otAudio && !otAudio.paused) {
-    otAudio.pause();
+async function openDropPlayer() {
+  const badge = document.getElementById("freq-badge");
+  if (typeof _tfFetchLatestDropTuning === "function" && typeof _tfShowTuningDetail === "function") {
+    try {
+      const dropTune = await _tfFetchLatestDropTuning();
+      if (dropTune) {
+        await _tfShowTuningDetail(Object.assign({}, dropTune, { _dropHub: true }));
+        if (badge) badge.setAttribute("aria-expanded", "true");
+        return;
+      }
+    } catch (_) {}
   }
-  const url = window._dropPlayerUrl || "https://drop.lucidprinciples.com/";
-  if (!frame.src || frame.src === "about:blank") frame.src = url;
-  overlay.hidden = false;
+  if (badge) badge.setAttribute("aria-expanded", "true");
 }
 
 function closeDropPlayer() {

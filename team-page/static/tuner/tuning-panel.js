@@ -181,27 +181,96 @@ function otPlayerHTML() {
  * Call this before otSetPlaylist() or otInitPlayer() to mount the UI.
  * @param {string} containerId - DOM id of the mount point
  */
-function otRenderPlayer(containerId) {
+function otRenderPlayer(containerId, opts) {
     const el = document.getElementById(containerId);
     if (!el) return;
     el.innerHTML = otPlayerHTML();
 
-    // Wire seek on progress bar
-    const wrap = el.querySelector('.ot-progress-wrap');
-    if (wrap) {
-        wrap.addEventListener('click', (e) => {
-            if (!otAudio || !otAudio.duration) return;
-            const rect = e.currentTarget.getBoundingClientRect();
-            const pct = (e.clientX - rect.left) / rect.width;
-            otAudio.currentTime = pct * otAudio.duration;
-            otUpdateProgressUI();
-        });
+    // skipSync: preview of a different playlist (badge / Tune while something else is live)
+    if (!(opts && opts.skipSync)) {
+        const wrap = el.querySelector('.ot-progress-wrap');
+        if (wrap) {
+            wrap.addEventListener('click', (e) => {
+                if (!otAudio || !otAudio.duration) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                const pct = (e.clientX - rect.left) / rect.width;
+                otAudio.currentTime = pct * otAudio.duration;
+                otUpdateProgressUI();
+            });
+        }
     }
 
-    // If audio is already playing, sync this player's state immediately
-    if (otAudio && otTracks.length > 0) {
+    if (otAudio && otTracks.length > 0 && !(opts && opts.skipSync)) {
         _otSyncAllPlayers();
     }
+}
+
+/** Idle playlist in one mount. Mini bar and otTracks stay on whatever is actually playing. */
+function _otPaintPreview(mountId, tracks, opts) {
+    opts = opts || {};
+    if (!mountId || !tracks || !tracks.length) return;
+    otRenderPlayer(mountId, { skipSync: true });
+    const root = document.getElementById(mountId);
+    if (!root) return;
+    window._otPreview = { tracks: tracks, opts: opts, mountId: mountId };
+    const track = tracks[0];
+    const coverUrl = otGetCoverUrl(track.folder, track.cdnBase);
+    const img = root.querySelector('.ot-cover-img');
+    if (img && coverUrl) { img.src = coverUrl; img.style.display = 'block'; }
+    const title = root.querySelector('.ot-track-title');
+    if (title) title.textContent = track.title;
+    const sig = root.querySelector('.ot-track-signal');
+    if (sig) sig.textContent = String(track.folder || '').replace(/_/g, ' ');
+    const label = root.querySelector('.ot-playlist-label');
+    if (label) label.textContent = opts.label || '';
+    root.querySelectorAll('.ot-play-icon').forEach(el => {
+        el.innerHTML = '<polygon points="5,3 19,12 5,21"/>';
+    });
+    const playBtn = root.querySelector('.ot-play');
+    if (playBtn) playBtn.setAttribute('onclick', '_otStartPreview(0)');
+    root.querySelectorAll('.ot-fav-btn').forEach(el => el.setAttribute('onclick', ''));
+    root.querySelectorAll('.ot-controls .ot-btn:not(.ot-play)').forEach(el => {
+        el.setAttribute('onclick', '_otStartPreview(0)');
+    });
+    const vol = root.querySelector('.ot-volume input');
+    if (vol) vol.removeAttribute('oninput');
+    const toggle = root.querySelector('.ot-playlist-toggle');
+    if (toggle) {
+        toggle.setAttribute('onclick', '');
+        toggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const tracksEl = root.querySelector('.ot-playlist-tracks');
+            if (!tracksEl) return;
+            const hide = tracksEl.style.display !== 'none';
+            tracksEl.style.display = hide ? 'none' : 'block';
+            toggle.textContent = hide ? 'Show' : 'Hide';
+        });
+    }
+    const list = root.querySelector('.ot-playlist-tracks');
+    if (list) {
+        list.innerHTML = tracks.map((t, i) =>
+            '<div class="ot-pl-track">' +
+            '<span class="ot-pl-num">' + (i + 1) + '</span>' +
+            '<span class="ot-pl-name" onclick="_otStartPreview(' + i + ')">' +
+            String(t.title || '').replace(/</g, '') + '</span></div>'
+        ).join('');
+    }
+}
+
+function _otStartPreview(index) {
+    const preview = window._otPreview;
+    if (!preview || !preview.tracks) return;
+    const o = Object.assign({}, preview.opts, { autoplay: true, startIndex: index || 0 });
+    window._otPreview = null;
+    otSetPlaylist(preview.tracks, o);
+}
+
+function _otInPreview(el) {
+    const id = window._otPreview && window._otPreview.mountId;
+    if (!id || !el) return false;
+    const root = document.getElementById(id);
+    return !!(root && root.contains(el));
 }
 
 
@@ -1035,23 +1104,40 @@ function _otEnsureGain() {
 // ── Shared Playlist Loader ──────────────────────────────────────────────────
 // opts: { source, label, onTrackChange, onProgress, autoplay, startIndex, freqColor, mountId }
 
+function _otHaltBuffers() {
+    [otAudio, _otNextAudio].forEach(el => {
+        if (!el) return;
+        try { el.pause(); } catch (e) {}
+    });
+    const frame = document.getElementById('drop-frame');
+    if (frame && frame.getAttribute('src') && frame.getAttribute('src') !== 'about:blank') {
+        try { frame.src = 'about:blank'; } catch (e) {}
+    }
+}
+
 function otSetPlaylist(tracks, opts) {
     opts = opts || {};
     if (!tracks || tracks.length === 0) return;
 
-    // Explicit playlist start — clear any pending state
+    const live = !!(otAudio && otAudio.src);
+    // Opening Tune, Playlists, or Drop is not Play — even if the live queue is paused.
+    if (live && opts.autoplay !== true) {
+        _otPaintPreview(opts.mountId, tracks, opts);
+        return;
+    }
+
+    window._otPreview = null;
+
     _otPendingPlay = false;
     _otNeedsResume = false;
     _otPreloadIndex = -1;
+    _otHaltBuffers();
     if (_otNextAudio) {
         try {
             _otNextAudio.removeAttribute('src');
             _otNextAudio.src = '';
         } catch (e) {}
     }
-
-    // Stop current playback
-    if (otAudio && !otAudio.paused) otAudio.pause();
 
     // Render player into mount point if provided
     if (opts.mountId) {
@@ -1263,9 +1349,16 @@ function _otSyncAllPlayers() {
     if (!otTracks.length) return;
     const track = otTracks[otIndex];
     const coverUrl = otGetCoverUrl(track.folder, track.cdnBase);
-    document.querySelectorAll('.ot-cover-img').forEach(el => { el.src = coverUrl; el.alt = track.folder.replace(/_/g, ' '); el.style.display = 'block'; });
-    document.querySelectorAll('.ot-track-title').forEach(el => el.textContent = track.title);
+    document.querySelectorAll('.ot-cover-img').forEach(el => {
+        if (_otInPreview(el)) return;
+        el.src = coverUrl; el.alt = track.folder.replace(/_/g, ' '); el.style.display = 'block';
+    });
+    document.querySelectorAll('.ot-track-title').forEach(el => {
+        if (_otInPreview(el)) return;
+        el.textContent = track.title;
+    });
     document.querySelectorAll('.ot-track-signal').forEach(el => {
+        if (_otInPreview(el)) return;
         el.textContent = track.folder.replace(/_/g, ' ');
         if (typeof lpSignalColor === 'function') el.style.color = lpSignalColor(track.folder);
     });
@@ -1349,7 +1442,10 @@ function otUpdateIcons() {
     const playPath = '<polygon points="5,3 19,12 5,21"/>';
     const pausePath = '<rect x="5" y="4" width="4" height="16"/><rect x="15" y="4" width="4" height="16"/>';
     const svg = otIsPlaying ? pausePath : playPath;
-    document.querySelectorAll('.ot-play-icon').forEach(el => el.innerHTML = svg);
+    document.querySelectorAll('.ot-play-icon').forEach(el => {
+        if (_otInPreview(el)) return;
+        el.innerHTML = svg;
+    });
     // Mini player icon
     const mpIcon = document.getElementById('mpPlayIcon');
     if (mpIcon) mpIcon.innerHTML = svg;
@@ -1374,9 +1470,18 @@ function otUpdateProgressUI() {
     const pct = (otAudio.currentTime / otAudio.duration) * 100;
     // If pending, only update mini player — tab player shows new playlist at 0%
     if (!_otPendingPlay) {
-        document.querySelectorAll('.ot-progress-bar').forEach(el => el.style.width = pct + '%');
-        document.querySelectorAll('.ot-time-elapsed').forEach(el => el.textContent = otFmtTime(otAudio.currentTime));
-        document.querySelectorAll('.ot-time-duration').forEach(el => el.textContent = otFmtTime(otAudio.duration));
+        document.querySelectorAll('.ot-progress-bar').forEach(el => {
+            if (_otInPreview(el)) return;
+            el.style.width = pct + '%';
+        });
+        document.querySelectorAll('.ot-time-elapsed').forEach(el => {
+            if (_otInPreview(el)) return;
+            el.textContent = otFmtTime(otAudio.currentTime);
+        });
+        document.querySelectorAll('.ot-time-duration').forEach(el => {
+            if (_otInPreview(el)) return;
+            el.textContent = otFmtTime(otAudio.duration);
+        });
     }
     // Mini player always updates (shows what's actually playing)
     const mpProg = document.getElementById('mpProgress');
@@ -1453,7 +1558,10 @@ function otRenderPlaylist() {
             '<button class="ot-pl-fav' + heartClass + '" onclick="event.stopPropagation();otToggleFavTrack(' + i + ')" title="Favorite">' + (isFav ? '♥' : '♡') + '</button>' +
             '</div>';
     }).join('');
-    containers.forEach(c => c.innerHTML = html);
+    containers.forEach(c => {
+        if (_otInPreview(c)) return;
+        c.innerHTML = html;
+    });
 }
 
 function otTogglePlaylist() {

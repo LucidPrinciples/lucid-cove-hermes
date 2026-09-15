@@ -1442,13 +1442,6 @@ async function _tfShowTuningDetail(s) {
     const existing = document.getElementById('tf-tuning-modal');
     if (existing) existing.remove();
 
-    // Stop any playing audio to avoid player state conflicts
-    if (typeof otAudio !== 'undefined' && otAudio && !otAudio.paused) {
-        otAudio.pause();
-        otAudio.currentTime = 0;
-    }
-    if (typeof _otPendingPlay !== 'undefined') _otPendingPlay = false;
-
     const rawFreq = s.frequency || '';
     const freq = rawFreq.charAt(0).toUpperCase() + rawFreq.slice(1).toLowerCase();
     const freqColor = typeof lpColor === 'function' ? lpColor(rawFreq) : 'var(--accent)';
@@ -1549,14 +1542,11 @@ async function _tfShowTuningDetail(s) {
 }
 
 function _tfCloseDetailModal() {
-    // Stop audio when closing history modal — avoids ghost player state
-    if (typeof otAudio !== 'undefined' && otAudio && !otAudio.paused) {
-        otAudio.pause();
-        otAudio.currentTime = 0;
-    }
-    if (typeof hideMiniPlayer === 'function') hideMiniPlayer();
     const modal = document.getElementById('tf-tuning-modal');
     if (modal) modal.remove();
+    if (typeof otAudio !== 'undefined' && otAudio && otAudio.src && typeof showMiniPlayer === 'function') {
+        showMiniPlayer();
+    }
 }
 
 async function _tfBuildModalPlaylist(s, freq, signalFolder, freqColor) {

@@ -198,6 +198,14 @@
   if (mini) {
     mini.addEventListener("click", (e) => {
       if (e.target.closest(".mp-btn")) return;
+      if (typeof _otSource !== "undefined" && _otSource === "history") {
+        if (typeof _tfFetchLatestDropTuning === "function" && typeof _tfShowTuningDetail === "function") {
+          _tfFetchLatestDropTuning().then((dropTune) => {
+            if (dropTune) return _tfShowTuningDetail(Object.assign({}, dropTune, { _dropHub: true }));
+          }).catch(() => {});
+        }
+        return;
+      }
       if (typeof _otSyncQueueToAudio === "function") _otSyncQueueToAudio();
       const dest = typeof _otSource !== "undefined" && _otSource === "playlist"
         ? "/playlists"
@@ -219,20 +227,6 @@
   window.addEventListener("popstate", () => {
     showHouse(location.pathname, location.search, false);
   });
-
-  document.addEventListener(
-    "play",
-    (e) => {
-      const t = e.target;
-      if (!t || t.tagName !== "AUDIO") return;
-      const frame = document.getElementById("drop-frame");
-      if (frame && frame.src && frame.src !== "about:blank") {
-        frame.removeAttribute("src");
-        frame.src = "about:blank";
-      }
-    },
-    true
-  );
 
   function escapeCoachText(s) {
     return String(s)

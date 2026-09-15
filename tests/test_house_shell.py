@@ -190,6 +190,50 @@ class HouseShellTests(unittest.TestCase):
         self.assertNotIn("const folder = t.folder || t.signal_type || signalFolder;", flow)
         self.assertNotIn("const fd = t.folder || t.signal_type || signalFolder;", flow)
 
+    def test_show_detail_does_not_rewind(self) -> None:
+        flow = (STATIC / "tuner" / "tune-flow.js").read_text(encoding="utf-8")
+        show = flow[flow.index("async function _tfShowTuningDetail") : flow.index("function _tfCloseDetailModal")]
+        self.assertNotIn("otAudio.currentTime = 0", show)
+        self.assertNotIn("Stop any playing audio", show)
+
+    def test_close_detail_keeps_mini_player(self) -> None:
+        flow = (STATIC / "tuner" / "tune-flow.js").read_text(encoding="utf-8")
+        close = flow[flow.index("function _tfCloseDetailModal") : flow.index("async function _tfBuildModalPlaylist")]
+        self.assertNotIn("otAudio.pause()", close)
+        self.assertNotIn("hideMiniPlayer", close)
+        self.assertIn("showMiniPlayer()", close)
+
+    def test_ot_set_playlist_one_live_queue(self) -> None:
+        panel = (STATIC / "tuner" / "tuning-panel.js").read_text(encoding="utf-8")
+        setter = panel[panel.index("function otSetPlaylist") : panel.index("function _otFilenameInSrc")]
+        self.assertIn("_otHaltBuffers()", setter)
+        self.assertIn("live && opts.autoplay !== true", setter)
+        self.assertIn("_otPaintPreview(opts.mountId, tracks, opts)", setter)
+        self.assertIn("otAudio && otAudio.src", setter)
+        self.assertNotIn("!otAudio.paused && otAudio.src", setter)
+        self.assertNotIn("_otPendingTracks", panel)
+        self.assertIn("function _otHaltBuffers", panel)
+
+    def test_badge_uses_drop_json_not_iframe(self) -> None:
+        team = (STATIC / "team.js").read_text(encoding="utf-8")
+        opener = team[team.index("async function openDropPlayer") : team.index("function closeDropPlayer")]
+        self.assertIn("_tfShowTuningDetail", opener)
+        self.assertIn("_tfFetchLatestDropTuning", opener)
+        self.assertNotIn("drop-frame", opener)
+        self.assertNotIn("otAudio.pause()", opener)
+
+    def test_mini_click_history_opens_drop(self) -> None:
+        js = (STATIC / "house.js").read_text(encoding="utf-8")
+        self.assertIn('_otSource === "history"', js)
+        self.assertIn("_tfShowTuningDetail", js)
+        self.assertNotIn('t.tagName !== "AUDIO"', js)
+
+    def test_house_css_does_not_clip_mini_player(self) -> None:
+        css = (STATIC / "house.css").read_text(encoding="utf-8")
+        self.assertNotIn("html, body.house", css)
+        self.assertIn("body.has-mini-player .mini-player", css)
+        self.assertIn("display: flex !important", css)
+
 
 if __name__ == "__main__":
     unittest.main()
