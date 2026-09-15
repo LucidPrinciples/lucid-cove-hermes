@@ -14,6 +14,7 @@ COPY team-page/souls.py .
 COPY team-page/tuner_api.py .
 COPY team-page/mirrors.py .
 COPY team-page/ltp_settings.py .
+COPY team-page/contact.py .
 COPY team-page/quantum.py .
 COPY team-page/data ./data
 COPY team-page/static ./static
