@@ -21,10 +21,11 @@ def ingest_url(raw: str | None = None) -> str | None:
     return f"https://{host}{path}"
 
 
-def build_forward_payload(body: dict, *, host: str, path: str, handle: str, connected) -> dict:
+def build_forward_payload(body: dict, *, host: str, path: str, handle: str, connected,
+                          email: str = "", name: str = "") -> dict:
     message = str(body.get("message") or "").strip()
-    email = str(body.get("email") or "").strip()
-    name = str(body.get("name") or body.get("display_name") or "").strip()
+    email = str(email or body.get("email") or "").strip()
+    name = str(name or body.get("name") or body.get("display_name") or "").strip()
     conn = connected
     if conn is True:
         conn = "yes"
