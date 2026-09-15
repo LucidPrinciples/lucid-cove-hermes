@@ -172,6 +172,13 @@ class HouseShellTests(unittest.TestCase):
         self.assertIn("setActionHandler('seekforward', () => otNext())", chunk)
         self.assertNotIn("setActionHandler('seekbackward', null)", chunk)
 
+    def test_player_does_not_skip_storm_on_load_error(self) -> None:
+        panel = (STATIC / "tuner" / "tuning-panel.js").read_text(encoding="utf-8")
+        start = panel.index("otAudio.addEventListener('error'")
+        err = panel[start : panel.index("otAudio.addEventListener('playing'")]
+        self.assertIn("not skipping", err)
+        self.assertNotIn("setTimeout(() => otNext(), 1500)", err)
+
 
 if __name__ == "__main__":
     unittest.main()
