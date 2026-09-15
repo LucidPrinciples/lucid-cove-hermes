@@ -142,6 +142,12 @@ class HouseHeaderTests(unittest.TestCase):
         panes = css[css.index("#pane-team") : css.index("#pane-work {")]
         self.assertIn("overflow: visible", panes)
 
+    def test_attention_pane_fills_shell_height(self) -> None:
+        css = (STATIC / "house.css").read_text(encoding="utf-8")
+        work = css[css.index("#pane-work {") : css.index("#pane-work[hidden]")]
+        self.assertIn("height: 100%", work)
+        self.assertNotIn("flex: 1", work)
+
     def test_playlists_scroll_shell_not_viewport(self) -> None:
         js = (STATIC / "tuner" / "playlists.js").read_text(encoding="utf-8")
         self.assertNotIn(".scrollIntoView(", js)
