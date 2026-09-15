@@ -1569,11 +1569,12 @@ async function _tfBuildModalPlaylist(s, freq, signalFolder, freqColor) {
             const res = await fetch(OT_PLAYLIST_CDN + '/' + freq.toLowerCase() + '.json');
             if (res.ok) {
                 const playlist = await res.json();
-                if (Array.isArray(playlist) && playlist.length > 0) {
-                    tracks = playlist.map(t => {
+                const rows = Array.isArray(playlist) ? playlist : ((playlist && playlist.tracks) || []);
+                if (rows.length > 0) {
+                    tracks = rows.map(t => {
                         const fn = t.filename || t.file || '';
-                        const fd = t.folder || t.signal_type || signalFolder;
-                        const pr = t.principle || t.title || fn.replace(/_/g, ' ').replace(/\.mp3$/, '');
+                        const fd = otSignalToFolder(t.folder || t.signalType || t.signal_type || t.album || signalFolder);
+                        const pr = t.principle || t.title || fn.replace(/_/g, ' ').replace(/\\.mp3$/, '');
                         return { title: pr + ' (' + fd.replace(/_Signal$/, '').replace(/_/g, ' ') + ' Signal Echo)', filename: fn, folder: fd, principle: pr };
                     });
                     loaded = true;
@@ -1740,11 +1741,12 @@ async function _tfsInit(data) {
             const res = await fetch(OT_PLAYLIST_CDN + '/' + freq.toLowerCase() + '.json');
             if (res.ok) {
                 const playlist = await res.json();
-                if (Array.isArray(playlist) && playlist.length > 0) {
-                    tracks = playlist.map(t => {
+                const rows = Array.isArray(playlist) ? playlist : ((playlist && playlist.tracks) || []);
+                if (rows.length > 0) {
+                    tracks = rows.map(t => {
                         const filename = t.filename || t.file || '';
-                        const folder = t.folder || t.signal_type || signalFolder;
-                        const principle = t.principle || t.title || filename.replace(/_/g, ' ').replace(/\.mp3$/, '');
+                        const folder = otSignalToFolder(t.folder || t.signalType || t.signal_type || t.album || signalFolder);
+                        const principle = t.principle || t.title || filename.replace(/_/g, ' ').replace(/\\.mp3$/, '');
                         return { title: principle + ' (' + folder.replace(/_Signal$/, '').replace(/_/g, ' ') + ' Signal Echo)', filename, folder, principle };
                     });
                     loaded = true;
