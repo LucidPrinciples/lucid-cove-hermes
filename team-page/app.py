@@ -530,13 +530,10 @@ async def house_contact(request: Request):
     if not isinstance(body, dict):
         return JSONResponse({"ok": False, "detail": "Invalid JSON"}, status_code=400)
     message = str(body.get("message") or "").strip()
-    email = str(body.get("email") or "").strip()
     if not message:
         return JSONResponse({"ok": False, "detail": "Message is required"}, status_code=400)
     if len(message) > 5000:
         return JSONResponse({"ok": False, "detail": "Message too long (max 5000 characters)"}, status_code=400)
-    if not email or "@" not in email or "." not in email.split("@")[-1]:
-        return JSONResponse({"ok": False, "detail": "Email is required"}, status_code=400)
     dest = lch_contact.ingest_url()
     if not dest:
         return JSONResponse({"ok": False, "detail": "Contact inbox is not configured"}, status_code=501)
