@@ -22,10 +22,12 @@ from attention import (  # noqa: E402
     pick_attention_frame,
     paperclip_org_frame,
     referer_attn_kind,
+    rewrite_css,
     rewrite_html,
     rewrite_location,
     rewrite_referer_to_backend,
     strip_proxy_prefix,
+    is_paperclip_static_path,
 )
 
 
@@ -131,7 +133,15 @@ class SameOriginProxyHelpersTests(unittest.TestCase):
         self.assertIn("seed(history.state)", html)
         self.assertNotIn("seed(history.state,p+'/')", html)
         self.assertIn("/attn/pc/x", html)
+        self.assertIn("WebSocket", html)
         self.assertNotIn("http://127.0.0.1:3100", html)
+
+    def test_paperclip_static_and_css_are_prefixed(self) -> None:
+        self.assertTrue(is_paperclip_static_path("/fonts/InterVariable.woff2"))
+        self.assertTrue(is_paperclip_static_path("/assets/index.css"))
+        self.assertFalse(is_paperclip_static_path("/static/house.css"))
+        css = rewrite_css("body{background:url(/fonts/x.woff2)}", "/attn/pc")
+        self.assertIn("url(/attn/pc/fonts/x.woff2)", css)
 
     def test_house_api_not_stolen_by_referer_passthrough(self) -> None:
         self.assertTrue(is_house_reserved("/api/attention"))
@@ -277,6 +287,8 @@ class AttentionChromeTests(unittest.TestCase):
         loaded = js.index("attentionLoaded = true")
         src = js.index("pcFrame.src = url")
         self.assertLess(src, loaded)
+        self.assertIn('pcFrame.getAttribute("src") !== url', js)
+        self.assertNotIn("if (!pcFrame || attentionLoaded) return", js)
 
     def test_house_keeps_header_over_attention_embed(self) -> None:
         html = (STATIC / "house.html").read_text(encoding="utf-8")
