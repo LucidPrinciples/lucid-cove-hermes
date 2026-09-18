@@ -109,9 +109,19 @@ class BoardActionsLogicTests(unittest.TestCase):
             )
             hot = self.ba.present_links(vault)
         self.assertNotIn("open-lucid-tuner", cold)
+        self.assertNotIn("tuner-action-working", cold)
         match = next(link for link in hot if link["id"] == "open-lucid-tuner")
         self.assertEqual(match["href"], "https://app.lucidtuner.com")
         self.assertTrue(match["exists"])
+        working = next(link for link in hot if link["id"] == "tuner-action-working")
+        self.assertEqual(
+            working["href"],
+            "https://github.com/LucidPrinciples/lucid-cove/tree/feat/tuner-action",
+        )
+        self.assertEqual(working["kind"], "external")
+        ids = [link["id"] for link in hot]
+        self.assertEqual(ids[0], "open-lucid-tuner")
+        self.assertEqual(ids[1], "tuner-action-working")
 
     def test_create_cannot_escape_vault(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
