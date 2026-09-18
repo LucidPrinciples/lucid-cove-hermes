@@ -8,6 +8,7 @@ import connect as lch_connect
 import watch_links
 
 TUNER_HREF = "https://app.lucidtuner.com"
+TUNER_ACTION_WORKING_HREF = "https://github.com/LucidPrinciples/lucid-cove/tree/feat/tuner-action"
 GOALS_REL = Path("playbooks") / "goals-brief.md"
 GOALS_TEMPLATE = """# Goals Brief
 
@@ -78,6 +79,19 @@ def present_links(vault: Path) -> list[dict[str, Any]]:
                 "relpath": "",
                 "exists": True,
                 "href": TUNER_HREF,
+                "kind": "external",
+            },
+        )
+        links.insert(
+            1,
+            {
+                "id": "tuner-action-working",
+                "title": "Tuner Action (working)",
+                "agent": "Stewart",
+                "description": "Public Tuner Action branch — code until it is ready for main. Not the live habit door.",
+                "relpath": "",
+                "exists": True,
+                "href": TUNER_ACTION_WORKING_HREF,
                 "kind": "external",
             },
         )
