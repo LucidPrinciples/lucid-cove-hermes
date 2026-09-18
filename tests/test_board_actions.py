@@ -37,6 +37,8 @@ class BoardActionsSurfaceTests(unittest.TestCase):
         self.assertIn("https://app.lucidtuner.com", js)
         self.assertIn("open-lucid-tuner", js)
         self.assertIn('target="_blank"', js)
+        self.assertIn('window.top', js)
+        self.assertIn('"_self"', js)
         self.assertIn("noopener noreferrer", js)
         self.assertIn("× Close", js)
         self.assertNotIn('window.open(href, "_blank", "noopener")', js)

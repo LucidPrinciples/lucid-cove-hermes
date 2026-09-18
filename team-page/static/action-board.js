@@ -223,8 +223,9 @@ function renderLinks(links) {
     .map((link) => {
       if (link.href) {
         const title = link.id === "open-lucid-tuner" ? (link.title || "Open Lucid Tuner") : (link.title || "");
+        const extTarget = window === window.top ? "_blank" : "_self";
         return `
-      <a class="ab-tool-card" href="${esc(link.href)}" target="_blank" rel="noopener noreferrer"
+      <a class="ab-tool-card" href="${esc(link.href)}" target="${extTarget}" rel="noopener noreferrer"
            style="--tool-agent-color: var(--freq-primary)">
         <div class="ab-tool-header">
           <h3>${esc(title)}</h3>
