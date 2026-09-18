@@ -580,7 +580,7 @@ function _tfReceiveTuning() {
     const container = _tfContainer();
     const dots = container?.querySelector('.tf-quantum-dots');
     const text = container?.querySelector('.tf-quantum-text');
-    if (text) text.textContent = 'Alignment found.';
+    if (text) text.textContent = 'Tuning received.';
     if (dots) dots.textContent = '✦';
     setTimeout(() => _renderStep4(_tfContainer()), 600);
 }

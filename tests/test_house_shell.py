@@ -234,6 +234,14 @@ class HouseShellTests(unittest.TestCase):
         self.assertIn("body.has-mini-player .mini-player", css)
         self.assertIn("display: flex !important", css)
 
+    def test_tuning_chrome_does_not_paint_alignment_label(self) -> None:
+        panel = (STATIC / "tuner" / "tuning-panel.js").read_text(encoding="utf-8")
+        flow = (STATIC / "tuner" / "tune-flow.js").read_text(encoding="utf-8")
+        self.assertNotIn("freq + ' ALIGNMENT'", panel)
+        self.assertIn("alignEl.hidden = true", panel)
+        self.assertNotIn("Alignment found.", flow)
+        self.assertIn("Tuning received.", flow)
+
 
 if __name__ == "__main__":
     unittest.main()
