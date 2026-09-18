@@ -15,7 +15,7 @@ import watch_links  # noqa: E402
 class WatchLinksTests(unittest.TestCase):
     def test_catalog_is_the_watch_cards(self) -> None:
         ids = [item["id"] for item in watch_links.WATCH_LINKS]
-        self.assertEqual(ids, ["goals-brief", "tuner-surface", "tuner-growth", "stewart-handoff"])
+        self.assertEqual(ids, ["house-board", "goals-brief", "tuner-surface", "tuner-growth", "stewart-handoff"])
         self.assertTrue(all(item["relpath"].endswith(".md") for item in watch_links.WATCH_LINKS))
 
     def test_list_marks_missing_and_present(self) -> None:

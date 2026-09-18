@@ -9,6 +9,13 @@ from typing import Any
 
 WATCH_LINKS: tuple[dict[str, str], ...] = (
     {
+        "id": "house-board",
+        "title": "House board",
+        "agent": "Stewart",
+        "description": "Now / Next / Later / Parked — pre-ticket. Goals brief is the picture.",
+        "relpath": "playbooks/house-board.md",
+    },
+    {
         "id": "goals-brief",
         "title": "Goals brief",
         "agent": "Hold",
