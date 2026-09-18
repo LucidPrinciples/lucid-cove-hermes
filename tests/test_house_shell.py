@@ -238,7 +238,8 @@ class HouseShellTests(unittest.TestCase):
         panel = (STATIC / "tuner" / "tuning-panel.js").read_text(encoding="utf-8")
         flow = (STATIC / "tuner" / "tune-flow.js").read_text(encoding="utf-8")
         self.assertNotIn("freq + ' ALIGNMENT'", panel)
-        self.assertIn("alignEl.hidden = true", panel)
+        self.assertIn("alignEl.textContent = freq || ''", panel)
+        self.assertNotIn("alignEl.hidden = true", panel)
         self.assertNotIn("Alignment found.", flow)
         self.assertIn("Tuning received.", flow)
 
