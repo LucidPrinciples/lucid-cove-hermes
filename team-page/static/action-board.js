@@ -158,7 +158,7 @@ function ensureBriefDrawer() {
           <h3 id="ab-brief-title"></h3>
           <p class="ab-brief-path" id="ab-brief-path"></p>
         </div>
-        <button type="button" class="ab-brief-close" id="ab-brief-close" aria-label="Close">Close</button>
+        <button type="button" class="ab-brief-close" id="ab-brief-close" aria-label="Close">× Close</button>
       </header>
       <article class="ab-brief-body md-prose" id="ab-brief-body"></article>
     </div>`;
@@ -224,7 +224,7 @@ function renderLinks(links) {
       if (link.href) {
         const title = link.id === "open-lucid-tuner" ? (link.title || "Open Lucid Tuner") : (link.title || "");
         return `
-      <div class="ab-tool-card" role="button" tabindex="0" data-link-id="${esc(link.id)}" data-link-href="${esc(link.href)}"
+      <a class="ab-tool-card" href="${esc(link.href)}" target="_blank" rel="noopener noreferrer"
            style="--tool-agent-color: var(--freq-primary)">
         <div class="ab-tool-header">
           <h3>${esc(title)}</h3>
@@ -232,7 +232,7 @@ function renderLinks(links) {
         </div>
         <p class="ab-tool-desc">${esc(link.description || "")}</p>
         <div class="ab-tool-meta"><span class="ab-tool-status-active">Open</span></div>
-      </div>`;
+      </a>`;
       }
       const status = link.exists
         ? '<span class="ab-tool-status-active">On vault</span>'
@@ -251,12 +251,8 @@ function renderLinks(links) {
     })
     .join("");
   container.querySelectorAll(".ab-tool-card").forEach((card) => {
+    if (card.tagName === "A") return;
     const go = () => {
-      const href = card.getAttribute("data-link-href");
-      if (href) {
-        window.open(href, "_blank", "noopener");
-        return;
-      }
       openBrief(card.getAttribute("data-link-id"));
     };
     card.addEventListener("click", go);

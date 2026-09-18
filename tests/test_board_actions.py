@@ -36,7 +36,13 @@ class BoardActionsSurfaceTests(unittest.TestCase):
         self.assertIn("Connect Lucid Tuner", js)
         self.assertIn("https://app.lucidtuner.com", js)
         self.assertIn("open-lucid-tuner", js)
-        self.assertIn("data-link-href", js)
+        self.assertIn('target="_blank"', js)
+        self.assertIn("noopener noreferrer", js)
+        self.assertIn("× Close", js)
+        self.assertNotIn('window.open(href, "_blank", "noopener")', js)
+        css = STATIC.joinpath("action-board.css").read_text(encoding="utf-8")
+        self.assertIn("z-index: 6000", css)
+        self.assertIn("position: sticky", css)
         self.assertNotIn("No daily actions yet", STATIC.joinpath("tools.html").read_text(encoding="utf-8"))
 
 
