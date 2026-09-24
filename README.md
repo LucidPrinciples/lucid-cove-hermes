@@ -65,7 +65,7 @@ See [docs/install.md](docs/install.md) for compose and env.
 - **Lucid Cove (site)** — https://lucidcove.org
 - **The daily Drop** — https://drop.lucidprinciples.com
 - **The Canon** — https://lucidprinciples.com/canon/
-- **Chords of Truth (YouTube)** — https://www.youtube.com/@LucidPrinciplesStories
+- **Chords of Truth (YouTube)** — https://www.youtube.com/@ChordsofTruth
 - **Self-host the original Cove** — https://lucidprinciples.com/open
 - **Support the work** — https://github.com/sponsors/LucidPrinciples
 
