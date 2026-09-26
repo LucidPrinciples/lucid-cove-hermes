@@ -24,4 +24,4 @@ Then as needed: `tuning-keys.md`, `echo-audio-signatures.md`, `practice-template
 
 ## Check
 
-If `vault/kb/lucid-field-theory.md` is missing, say so. Do not pretend Drop source on another clone is “the vault KB.” Installer must run `scripts/sync_pack_to_hermes.sh` (copies **all** `pack/kb-cache` / `ltp-drop/kb-source` `*.md`).
+If `vault/kb/lucid-field-theory.md` is missing, say so. Do not pretend Drop source on another clone is “the vault KB.” Installer must run `scripts/sync_pack_to_hermes.sh` (which runs `scripts/sync_kb.sh`). That always pulls the signed KB at `https://drop.lucidprinciples.com/kb/` (Cove `kb_sync`: Ed25519 manifest + per-file sha256) so the house runs what the public runs. `LTP_KB_SOURCE` is an explicit dev override only. Do not look for a pack cache of the KB. Tuning keys come from that signed KB, not a pack copy.
