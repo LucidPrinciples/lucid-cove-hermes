@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Sync Lucid Principles KB into vault/kb for Hermes agents to read.
-# Prefer a local ltp-drop/kb-source tree when present. Otherwise pull the
-# signed KB from https://drop.lucidprinciples.com/kb/ the same way Coves
-# kb_sync does (Ed25519 manifest + per-file sha256, fail closed).
+# Default: always pull the signed KB from https://drop.lucidprinciples.com/kb/
+# the same way Coves kb_sync does (Ed25519 manifest + per-file sha256, fail
+# closed). House and public run the same path. LTP_KB_SOURCE is an explicit
+# dev override only — never auto-detect data/repos/ltp-drop or ../ltp-drop.
 set -euo pipefail
 
 SCRIPT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -14,17 +15,14 @@ fi
 VAULT="${LCH_VAULT:-$ROOT/vault}"
 DEST="$VAULT/kb"
 
-DEFAULT_SRC=""
-for cand in \
-  "${LTP_KB_SOURCE:-}" \
-  "$ROOT/data/repos/ltp-drop/kb-source" \
-  "$ROOT/../ltp-drop/kb-source"
-do
-  if [[ -n "$cand" && -d "$cand" ]]; then
-    DEFAULT_SRC="$cand"
-    break
+OVERRIDE_SRC=""
+if [[ -n "${LTP_KB_SOURCE:-}" ]]; then
+  if [[ ! -d "$LTP_KB_SOURCE" ]]; then
+    echo "ERROR: LTP_KB_SOURCE is set but is not a directory: $LTP_KB_SOURCE" >&2
+    exit 1
   fi
-done
+  OVERRIDE_SRC="$LTP_KB_SOURCE"
+fi
 
 mkdir -p "$DEST/worldview"
 copied=0
@@ -167,11 +165,11 @@ print(f"SIGNED_COPIED={written}")
 PY
 }
 
-if [[ -n "$DEFAULT_SRC" ]]; then
-  copy_local "$DEFAULT_SRC"
-  echo "synced $copied KB files → $DEST (from $DEFAULT_SRC)"
+if [[ -n "$OVERRIDE_SRC" ]]; then
+  copy_local "$OVERRIDE_SRC"
+  echo "synced $copied KB files → $DEST (LTP_KB_SOURCE override)"
 else
-  echo "no local ltp-drop/kb-source; pulling signed KB from ${LP_KB_MANIFEST_URL:-https://drop.lucidprinciples.com/kb/manifest.json}"
+  echo "pulling signed KB from ${LP_KB_MANIFEST_URL:-https://drop.lucidprinciples.com/kb/manifest.json}"
   signed_out="$(pull_signed)"
   copied="${signed_out##*SIGNED_COPIED=}"
   copied="${copied%%$'\n'*}"
@@ -187,7 +185,7 @@ On-disk reference for Lucid Cove on Hermes. **Not** auto-injected — open files
 
 Naming: never bare “Lucid” — Lucid Principles / LP, Lucid Cove, or Lucid Tuner.
 
-Synced **all** \`*.md\` via \`scripts/sync_kb.sh\` (${copied} files). Local \`ltp-drop/kb-source\` wins when present; otherwise the signed KB at https://drop.lucidprinciples.com/kb/.
+Synced **all** \`*.md\` via \`scripts/sync_kb.sh\` (${copied} files) from the signed KB at https://drop.lucidprinciples.com/kb/ (or an explicit LTP_KB_SOURCE override).
 EOF
 
 echo "KB files now: $(ls -1 "$DEST"/*.md 2>/dev/null | wc -l | tr -d ' ')"
@@ -197,5 +195,9 @@ if [[ "$copied" -lt 15 ]]; then
 fi
 if [[ ! -f "$DEST/lucid-field-theory.md" ]]; then
   echo "ERROR: lucid-field-theory.md missing in vault/kb after sync." >&2
+  exit 1
+fi
+if [[ ! -f "$DEST/tuning-keys.md" ]]; then
+  echo "ERROR: tuning-keys.md missing in vault/kb after sync." >&2
   exit 1
 fi

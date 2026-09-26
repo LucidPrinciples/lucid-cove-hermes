@@ -34,9 +34,9 @@ fi
 cp -a "$PACK/HERMES.md" "$ROOT/HERMES.md"
 cp -a "$PACK/HERMES.md" "$ROOT/.hermes.md"
 
-# Curated KB into vault (best-effort if ltp-drop present)
+# Curated KB into vault (signed Drop KB; same path house and public)
 if [[ -x "$ROOT/scripts/sync_kb.sh" ]]; then
-  "$ROOT/scripts/sync_kb.sh" || echo "warn: sync_kb.sh skipped/failed — local ltp-drop/kb-source or signed Drop KB"
+  "$ROOT/scripts/sync_kb.sh" || echo "warn: sync_kb.sh skipped/failed — signed Drop KB"
 elif [[ -f "$ROOT/scripts/sync_kb.sh" ]]; then
   bash "$ROOT/scripts/sync_kb.sh" || echo "warn: sync_kb.sh skipped/failed"
 fi

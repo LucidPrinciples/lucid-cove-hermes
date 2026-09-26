@@ -1,4 +1,4 @@
-"""Guard scripts/sync_kb.sh: signed Drop KB, no pack cache, no machine-local paths."""
+"""Guard scripts/sync_kb.sh: signed Drop KB by default, no pack cache, no auto local clone."""
 from __future__ import annotations
 
 import unittest
@@ -21,18 +21,22 @@ class SyncKbScriptTests(unittest.TestCase):
         self.assertNotIn("pack/kb-cache", self.ingest)
         self.assertFalse((ROOT / "pack" / "kb-cache").exists())
 
-    def test_prefers_local_ltp_drop(self) -> None:
-        self.assertIn("ltp-drop/kb-source", self.script)
+    def test_no_automatic_ltp_drop_clone(self) -> None:
+        self.assertNotIn('"$ROOT/data/repos/ltp-drop/kb-source"', self.script)
+        self.assertNotIn('"$ROOT/../ltp-drop/kb-source"', self.script)
         self.assertIn("LTP_KB_SOURCE", self.script)
+        self.assertIn("OVERRIDE_SRC", self.script)
 
-    def test_signed_kb_matches_cove_kb_sync(self) -> None:
+    def test_signed_kb_is_default(self) -> None:
         self.assertIn("https://drop.lucidprinciples.com/kb/manifest.json", self.script)
         self.assertIn("sha256", self.script)
         self.assertIn("signature", self.script)
         self.assertIn("pkeyutl", self.script)
         self.assertIn("LucidCove-Cove/1.0", self.script)
+        self.assertIn("pulling signed KB from", self.script)
 
-    def test_kb_ingest_points_at_signed_or_local(self) -> None:
+    def test_kb_ingest_points_at_signed_drop(self) -> None:
         self.assertIn("drop.lucidprinciples.com/kb/", self.ingest)
-        self.assertIn("ltp-drop/kb-source", self.ingest)
         self.assertIn("sync_kb.sh", self.ingest)
+        self.assertIn("LTP_KB_SOURCE", self.ingest)
+        self.assertNotIn("when present, otherwise", self.ingest)
