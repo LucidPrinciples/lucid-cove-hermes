@@ -35,6 +35,7 @@ _HOUSE_EXACT = {
     "/playlists",
     "/tools",
     "/jules",
+    "/jules-voice",
     "/deeper",
     "/observer",
 }
@@ -50,6 +51,7 @@ _HOUSE_PREFIXES = (
     "/api/links",
     "/api/tools",
     "/api/jules",
+    "/jules-voice",
     "/api/presence",
     "/api/onboarding",
     "/api/ltp",

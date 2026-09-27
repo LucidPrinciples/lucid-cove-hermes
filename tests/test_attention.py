@@ -147,6 +147,8 @@ class SameOriginProxyHelpersTests(unittest.TestCase):
         self.assertTrue(is_house_reserved("/api/attention"))
         self.assertTrue(is_house_reserved("/api/team"))
         self.assertTrue(is_house_reserved("/static/house.css"))
+        self.assertTrue(is_house_reserved("/jules-voice"))
+        self.assertTrue(is_house_reserved("/jules-voice/ws"))
         self.assertFalse(is_house_reserved("/assets/index.js"))
         self.assertFalse(is_house_reserved("/api/companies/x"))
 

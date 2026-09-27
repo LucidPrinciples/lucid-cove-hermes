@@ -300,20 +300,38 @@ async def tools():
 
 
 def _jules_voice_ws(request_host: str = "") -> str:
-    """Prefer localhost voice tunnel when browsing via Mac SSH tunnel."""
-    host = (request_host or "").split(":")[0].lower()
-    if host in ("127.0.0.1", "localhost"):
-        return (os.environ.get("JULES_VOICE_WS_LOCAL") or "ws://127.0.0.1:8302").rstrip("/")
-    return (os.environ.get("JULES_VOICE_WS") or "").rstrip("/")
+    """Browser voice URL. Empty env → same-origin /jules-voice (Team proxies)."""
+    _ = request_host
+    explicit = (os.environ.get("JULES_VOICE_WS") or "").rstrip("/")
+    if explicit:
+        return explicit
+    return "/jules-voice"
 
 
 def _jules_voice_http(request_host: str = "") -> str:
     # Prefer env; otherwise local voice publish port.
+    _ = request_host
     return (
         os.environ.get("JULES_VOICE_HTTP")
         or os.environ.get("VOICE_INTERNAL_URL")
         or "http://127.0.0.1:8302"
     ).rstrip("/")
+
+
+def _jules_voice_upstream_ws() -> str:
+    """Loopback (or JULES_VOICE_HTTP) WebSocket the proxy dials — never the browser."""
+    raw = _jules_voice_http().rstrip("/")
+    if raw.startswith("https://"):
+        ws = "wss://" + raw[len("https://") :]
+    elif raw.startswith("http://"):
+        ws = "ws://" + raw[len("http://") :]
+    elif raw.startswith("ws://") or raw.startswith("wss://"):
+        ws = raw
+    else:
+        ws = "ws://127.0.0.1:8302"
+    if not ws.endswith("/ws"):
+        ws = ws + "/ws"
+    return ws
 
 
 _ATTN_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]
@@ -434,6 +452,57 @@ async def jules_page(request: Request):
     )
     html = html.replace("reopen Jules from Mission Control", "check stewart NC app password on Team page")
     return HTMLResponse(html)
+
+
+async def _proxy_jules_voice(websocket: WebSocket) -> None:
+    """Browser ↔ loopback voice /ws. Jules sends JSON text and PCM bytes."""
+    await websocket.accept()
+    try:
+        import websockets
+    except ImportError:
+        await websocket.close(code=1011)
+        return
+    upstream_url = _jules_voice_upstream_ws()
+    try:
+        async with websockets.connect(upstream_url, open_timeout=8) as upstream:
+            async def browser_to_voice() -> None:
+                try:
+                    while True:
+                        message = await websocket.receive()
+                        if message.get("type") == "websocket.disconnect":
+                            await upstream.close()
+                            return
+                        data = message.get("bytes")
+                        if data is not None:
+                            await upstream.send(data)
+                            continue
+                        text = message.get("text")
+                        if text is not None:
+                            await upstream.send(text)
+                except WebSocketDisconnect:
+                    try:
+                        await upstream.close()
+                    except Exception:
+                        pass
+
+            async def voice_to_browser() -> None:
+                async for message in upstream:
+                    if isinstance(message, bytes):
+                        await websocket.send_bytes(message)
+                    else:
+                        await websocket.send_text(message)
+
+            await asyncio.gather(browser_to_voice(), voice_to_browser())
+    except Exception:
+        try:
+            await websocket.close()
+        except Exception:
+            pass
+
+
+@app.websocket("/jules-voice/ws")
+async def jules_voice_ws(websocket: WebSocket):
+    await _proxy_jules_voice(websocket)
 
 
 @app.get("/api/actions")
