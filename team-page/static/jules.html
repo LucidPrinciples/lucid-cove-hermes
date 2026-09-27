@@ -313,19 +313,22 @@ async function processQueue() {
 }
 
 // ── WebSocket ──────────────────────────────────────────────
-// Connects to pipecat-voice server (cross-origin OK for WebSockets)
+// Same-origin /jules-voice (Team page proxies to the voice box).
+// Absolute VOICE_SERVER still wins when injected.
 
 function connect() {
-  // Build WebSocket URL from the voice server URL
   let wsUrl = VOICE_SERVER;
   if (!wsUrl || wsUrl.indexOf("__VOICE") >= 0) {
-    connStatus.textContent = "no voice URL";
-    connStatus.style.color = "#e74c3c";
-    return;
+    wsUrl = "/jules-voice";
   }
-  if (wsUrl.startsWith("http://")) wsUrl = "ws://" + wsUrl.slice(7);
-  else if (wsUrl.startsWith("https://")) wsUrl = "wss://" + wsUrl.slice(8);
-  // If already ws/wss, use as-is
+  if (wsUrl.startsWith("/")) {
+    const scheme = location.protocol === "https:" ? "wss:" : "ws:";
+    wsUrl = scheme + "//" + location.host + wsUrl;
+  } else if (wsUrl.startsWith("http://")) {
+    wsUrl = "ws://" + wsUrl.slice(7);
+  } else if (wsUrl.startsWith("https://")) {
+    wsUrl = "wss://" + wsUrl.slice(8);
+  }
   if (!wsUrl.endsWith("/ws")) wsUrl = wsUrl.replace(/\/$/, "") + "/ws";
 
   ws = new WebSocket(wsUrl);
@@ -347,7 +350,7 @@ function connect() {
     connStatus.textContent = "voice error";
     connStatus.style.color = "#e74c3c";
     if (saveStatus && !saveStatus.textContent) {
-      saveStatus.textContent = "Voice server unreachable — set JULES_VOICE_WS or local tunnel port 8302";
+      saveStatus.textContent = "Voice server unreachable";
       saveStatus.style.color = "#f39c12";
     }
   };
