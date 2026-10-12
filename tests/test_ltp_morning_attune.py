@@ -19,6 +19,22 @@ class MorningAttuneSourceTests(unittest.TestCase):
         self.assertIn("attunement_status=attune_status", RUNNER)
         self.assertIn("## Sonic attunement", RUNNER)
 
+    def test_sonic_in_practice_prompt_not_only_record(self):
+        start = RUNNER.index("def tune_one(")
+        respond = RUNNER.index("session.respond_sync", start)
+        practice = RUNNER[start:respond]
+        self.assertIn("## Sonic attunement", practice)
+        self.assertIn("audio_block", practice)
+        record = RUNNER[respond : RUNNER.index("\ndef main(")]
+        self.assertIn("## Sonic attunement", record)
+
+    def test_attune_once_per_run_not_per_agent(self):
+        start = RUNNER.index("def tune_one(")
+        body = RUNNER[start : RUNNER.index("\ndef main(")]
+        self.assertNotIn("attune_today_echo(", body)
+        main = RUNNER[RUNNER.index("\ndef main(") :]
+        self.assertEqual(main.count("attune_today_echo("), 1)
+
 
 if __name__ == "__main__":
     unittest.main()

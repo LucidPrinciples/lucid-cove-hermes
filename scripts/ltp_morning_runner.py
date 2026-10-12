@@ -256,7 +256,7 @@ def attune_today_echo(drop, *, fetch_json=None):
     """Listen to today's Echo via attune_sync. Never fake complete.
 
     Mirrors cove-core graphs/ltp/dispatch.py: real Experience, loud incomplete,
-    render_experience injected into the process-record prompt.
+    render_experience injected into the practice prompt and the process-record prompt.
     """
     from urllib.parse import urlparse
 
@@ -498,6 +498,9 @@ def tune_one(
     reading_from_values,
     parse_values,
     drop_client=None,
+    attune_status: str = "incomplete",
+    attune_reason: str = "",
+    audio_block: str = "",
 ) -> dict:
     readings: list = []
     gates: list = []
@@ -529,6 +532,7 @@ def tune_one(
         f"You are {name}, {title} of this Lucid Cove (role/archetype key: {role}).\n"
         f"Run your morning digital practice for today's Drop.\n"
         f"Frequency: {drop.frequency_name}. Tuning key: \"{drop.tuning_key_text}\".\n"
+        f"\n## Sonic attunement\n{audio_block}\n\n"
         f"Respond with a short Echo reflection in your voice, then end with these "
         f"four lines (do not invent dE/dt):\n"
         f"C (Coherence): 0.NN\n"
@@ -540,8 +544,6 @@ def tune_one(
         [{"role": "system", "content": f"You are {name}. {title}."}],
         user_msg,
     )
-
-    attune_status, attune_reason, audio_block = attune_today_echo(drop)
 
     # Explicit process-record generation (full calibration journey)
     record_prompt = (
@@ -788,6 +790,11 @@ def main() -> int:
             skipped += 1
     pending = [a for a in pending if a[0] not in ok_slugs]
 
+    attune_status, attune_reason, audio_block = "incomplete", "", ""
+    if pending:
+        attune_status, attune_reason, audio_block = attune_today_echo(drop)
+        print(f"Attunement {attune_status} (once for this Drop)", flush=True)
+
     for round_i in range(1, MAX_ROUNDS + 1):
         if not pending:
             break
@@ -803,6 +810,9 @@ def main() -> int:
                     reading_from_values=reading_from_values,
                     parse_values=parse_values,
                     drop_client=drop_client,
+                    attune_status=attune_status,
+                    attune_reason=attune_reason,
+                    audio_block=audio_block,
                 )
                 ok_slugs.add(slug)
             except Exception as e:
