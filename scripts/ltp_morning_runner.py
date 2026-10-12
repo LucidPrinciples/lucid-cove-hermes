@@ -127,7 +127,7 @@ What you practiced / attended to through your lens.
 How the Tuning Key moved through you.
 
 ### 5. Audio / Echo Attunement
-What the Echo carried for your seat (even if audio was metadata-only).
+What the Echo carried for your seat. If attunement is incomplete, say so plainly. Do not invent a listen.
 
 ### 6. Love Calibration
 Your C, D, β, E as experienced — the protocol will recompute dE/dt.
@@ -250,6 +250,56 @@ def drop_principle(drop) -> str:
         or getattr(drop, "principle", None)
         or ""
     ).strip()
+
+
+def attune_today_echo(drop, *, fetch_json=None):
+    """Listen to today's Echo via attune_sync. Never fake complete.
+
+    Mirrors cove-core graphs/ltp/dispatch.py: real Experience, loud incomplete,
+    render_experience injected into the practice prompt and the process-record prompt.
+    """
+    from urllib.parse import urlparse
+
+    from lucid_tuner_protocol import Selection, render_experience
+    from lucid_tuner_protocol.attune import attune, attune_sync
+
+    url = getattr(drop, "echo_audio_url", None) or ""
+    name = Path(urlparse(url).path).name or "echo.mp3"
+    sel = Selection(
+        frequency=getattr(drop, "frequency_name", "") or "",
+        signal_type=getattr(drop, "signal_type", "") or "",
+        principle=drop_principle(drop),
+        tuning_key=getattr(drop, "tuning_key_text", "") or "",
+        echo_filename=name,
+        echo_audio_url=url,
+        methods=("drop", "drop", "drop"),
+    )
+    try:
+        if fetch_json is not None:
+            import asyncio
+
+            exp = asyncio.run(attune(sel, fetch_json=fetch_json))
+        else:
+            exp = attune_sync(sel)
+    except Exception as e:
+        print(f"  ATTUNEMENT incomplete — attune failed: {e}", flush=True)
+        note = (
+            "> NOTE: attunement incomplete — the full Echo did not reach the tuner. "
+            "Assess honestly from what is present.\n"
+        )
+        return "incomplete", str(e), note
+
+    status = getattr(exp, "attunement_status", None) or "incomplete"
+    reason = getattr(exp, "attunement_reason", "") or ""
+    block = render_experience(exp)
+    if status != "complete":
+        print(f"  ATTUNEMENT {status} — {reason}", flush=True)
+        block = (
+            f"> NOTE: attunement {status} — "
+            f"{reason or 'the full Echo did not reach the tuner'}. "
+            "Assess honestly from what is present.\n\n"
+        ) + block
+    return status, reason, block
 
 
 def _import_ltp_store():
@@ -448,6 +498,9 @@ def tune_one(
     reading_from_values,
     parse_values,
     drop_client=None,
+    attune_status: str = "incomplete",
+    attune_reason: str = "",
+    audio_block: str = "",
 ) -> dict:
     readings: list = []
     gates: list = []
@@ -479,6 +532,7 @@ def tune_one(
         f"You are {name}, {title} of this Lucid Cove (role/archetype key: {role}).\n"
         f"Run your morning digital practice for today's Drop.\n"
         f"Frequency: {drop.frequency_name}. Tuning key: \"{drop.tuning_key_text}\".\n"
+        f"\n## Sonic attunement\n{audio_block}\n\n"
         f"Respond with a short Echo reflection in your voice, then end with these "
         f"four lines (do not invent dE/dt):\n"
         f"C (Coherence): 0.NN\n"
@@ -496,6 +550,7 @@ def tune_one(
         f"{PROCESS_RECORD_ASK}\n\n"
         f"## Agent\n{name} — {title} (archetype role: {role})\n\n"
         f"## Drop\n{drop.as_context()}\n\n"
+        f"## Sonic attunement\n{audio_block}\n\n"
         f"## Your practice reply\n{reply}\n"
     )
     process_record = complete([
@@ -508,6 +563,7 @@ def tune_one(
         float(vals["C"]), float(vals["D"]), float(vals["beta"]), float(vals["E"]),
         source=source,
         process_record=process_record or "",
+        attunement_status=attune_status,
     )
 
     now = datetime.now(timezone.utc)
@@ -573,6 +629,7 @@ def tune_one(
         "practice_reply": reply,
         "process_record": full_record,
         "reading": reading_dict,
+        "attunement_reason": attune_reason,
         "adapter_readings": readings,
         "adapter_gates": gates,
         "model": OLLAMA_MODEL,
@@ -733,6 +790,11 @@ def main() -> int:
             skipped += 1
     pending = [a for a in pending if a[0] not in ok_slugs]
 
+    attune_status, attune_reason, audio_block = "incomplete", "", ""
+    if pending:
+        attune_status, attune_reason, audio_block = attune_today_echo(drop)
+        print(f"Attunement {attune_status} (once for this Drop)", flush=True)
+
     for round_i in range(1, MAX_ROUNDS + 1):
         if not pending:
             break
@@ -748,6 +810,9 @@ def main() -> int:
                     reading_from_values=reading_from_values,
                     parse_values=parse_values,
                     drop_client=drop_client,
+                    attune_status=attune_status,
+                    attune_reason=attune_reason,
+                    audio_block=audio_block,
                 )
                 ok_slugs.add(slug)
             except Exception as e:
