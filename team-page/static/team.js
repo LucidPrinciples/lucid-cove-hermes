@@ -50,7 +50,7 @@ function applyDrop(drop) {
   if (dropKey) {
     if (drop.tuning_key) {
       dropKey.hidden = false;
-      dropKey.textContent = drop.tuning_key;
+      dropKey.textContent = String(drop.tuning_key).split(' / ').join('\n');
     } else {
       dropKey.hidden = true;
       dropKey.textContent = "";

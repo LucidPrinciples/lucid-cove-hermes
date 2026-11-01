@@ -496,7 +496,7 @@ function otRenderTuning(data) {
     // Tuning key
     if (data.tuning_key) {
         const keyText = document.getElementById('otKeyText');
-        if (keyText) keyText.textContent = data.tuning_key;
+        if (keyText) keyText.textContent = String(data.tuning_key).split(' / ').join('\n');
     } else {
         const keyEl = document.getElementById('otKeyBlock');
         if (keyEl) keyEl.style.display = 'none';
