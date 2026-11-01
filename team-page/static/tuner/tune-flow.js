@@ -730,7 +730,7 @@ function _renderStep6(container) {
                 </div>
                 <div class="tf-key">
                     <p class="tf-key-instruction">This is your anchor. Read it. Hold it. When the frequency starts, let this thought organize your broadcast.</p>
-                    <blockquote class="tf-key-quote">"${ESC(key)}"</blockquote>
+                    <blockquote class="tf-key-quote">"${ESC(String(key).split(' / ').join('\n'))}"</blockquote>
                 </div>
                 <button class="tf-btn tf-btn-next" onclick="_renderStep7(_tfContainer())">Play Echo</button>
             </div>
@@ -950,7 +950,7 @@ async function _renderCompletedTuning(container, data) {
 
             <div class="tf-complete-section tf-complete-key">
                 <span class="tf-section-label">Tuning Key</span>
-                <blockquote class="tf-key-quote">"${ESC(key)}"</blockquote>
+                <blockquote class="tf-key-quote">"${ESC(String(key).split(' / ').join('\n'))}"</blockquote>
             </div>
 
             <div class="tf-complete-section tf-stream-section">
@@ -1513,7 +1513,7 @@ async function _tfShowTuningDetail(s) {
 
             ${key ? `<div class="tf-modal-section">
                 <span class="tf-modal-label">Tuning Key</span>
-                <blockquote class="tf-modal-key" style="border-left-color:${freqColor};">"${ESC(key)}"</blockquote>
+                <blockquote class="tf-modal-key" style="border-left-color:${freqColor};">"${ESC(String(key).split(' / ').join('\n'))}"</blockquote>
             </div>` : ''}
 
             <div class="tf-modal-section">

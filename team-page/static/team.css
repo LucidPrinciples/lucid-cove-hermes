@@ -145,6 +145,7 @@ body {
   font-style: italic;
   font-size: 0.95rem;
   line-height: 1.45;
+  white-space: pre-line;
 }
 .drop-key[hidden] { display: none !important; }
 .drop-meta { font-size: 0.8rem; color: var(--dim); margin-top: 0.2rem; max-width: 48rem; }

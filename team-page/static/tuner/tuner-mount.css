@@ -194,3 +194,6 @@ body.has-mini-player .chat-input-area { margin-bottom: 52px; }
   border: 1px solid currentColor;
   font-weight: 600;
 }
+#otKeyText {
+  white-space: pre-line;
+}

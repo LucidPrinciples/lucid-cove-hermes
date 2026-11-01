@@ -231,6 +231,7 @@
   border-left: 3px solid var(--daily-freq, var(--accent));
   background: rgba(255,255,255,0.02);
   border-radius: 0 8px 8px 0;
+  white-space: pre-line;
 }
 
 /* Step 7: Echo / Player */
@@ -779,6 +780,7 @@
   background: rgba(255,255,255,0.02);
   border-radius: 0 8px 8px 0;
   line-height: 1.5;
+  white-space: pre-line;
 }
 .tf-modal-value {
   font-size: 0.85rem;

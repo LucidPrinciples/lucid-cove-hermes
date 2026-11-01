@@ -243,6 +243,27 @@ class HouseShellTests(unittest.TestCase):
         self.assertNotIn("Alignment found.", flow)
         self.assertIn("Tuning received.", flow)
 
+    def test_tuning_key_space_slash_is_a_line_break(self) -> None:
+        panel = (STATIC / "tuner" / "tuning-panel.js").read_text(encoding="utf-8")
+        team = (STATIC / "team.js").read_text(encoding="utf-8")
+        flow = (STATIC / "tuner" / "tune-flow.js").read_text(encoding="utf-8")
+        split = "split(' / ').join('\\n')"
+        self.assertIn(split, panel)
+        self.assertIn("keyText.textContent = String(data.tuning_key).split(' / ').join('\\n')", panel)
+        self.assertNotIn("keyText.innerHTML", panel)
+        self.assertIn(split, team)
+        self.assertIn("dropKey.textContent = String(drop.tuning_key).split(' / ').join('\\n')", team)
+        self.assertEqual(flow.count("ESC(String(key).split(' / ').join('\\n'))"), 3)
+        self.assertNotIn('"${ESC(key)}"', flow)
+        drop_css = (STATIC / "team.css").read_text(encoding="utf-8")
+        quote_css = (STATIC / "tuner" / "tune-flow.css").read_text(encoding="utf-8")
+        mount_css = (STATIC / "tuner" / "tuner-mount.css").read_text(encoding="utf-8")
+        self.assertIn("white-space: pre-line", drop_css[drop_css.index(".drop-key {") : drop_css.index(".drop-key[hidden]")])
+        self.assertIn("white-space: pre-line", quote_css[quote_css.index(".tf-key-quote {") : quote_css.index("/* Step 7")])
+        self.assertIn("white-space: pre-line", quote_css[quote_css.index(".tf-modal-key {") : quote_css.index(".tf-modal-value")])
+        self.assertIn("#otKeyText", mount_css)
+        self.assertIn("white-space: pre-line", mount_css[mount_css.index("#otKeyText") :])
+
 
 if __name__ == "__main__":
     unittest.main()
