@@ -13,3 +13,5 @@ Sourced from LucidPrinciples/lucid-cove — do not rewrite.
 When lucid-cove Tuner files change, re-copy. Overlay only adds adapter + vault-backed /api/tuning/*.
 
 Overlay patch in tune-flow.js `_tfShowTuningDetail`: lucid-cove referenced unbound `data` (should be session `s`), which threw and blocked the history modal. Keep that fix when re-copying.
+
+2026-11-12 APP1-H: re-copied tune-flow.js, tune-flow.css, tuning-panel.js, and tuner-mount.css from lucid-cove through N7b (local 36d4139). House locks kept on the copy: loadTuneFlow returns early while a Tune is playing, the queue sync helpers, playlist restore, and newline Tuning Keys (`white-space: pre-line`). playlists.js stayed the overlay file. Favorites, streams, and albums start at a random index and no longer shuffle the list. favicon.svg, apple-touch-icon.png, icon-192.png, and icon-512.png live in this folder. house.html links the icon and the apple touch icon. No manifest. lp-colors.js was already the same file.

@@ -140,16 +140,16 @@ const TUNE_TEMPLATE_MAP = {
 
 const TUNE_COACHING = {
     'Peace': "Calm anchors you in the present moment, creating space for clarity to emerge from the noise. Your decoder is resetting to its natural baseline.",
-    'Clarity': "Clear sight requires cutting through static to find signal. The truth was always there—you just needed to retune the decoder.",
+    'Clarity': "Clear sight requires cutting through static to find signal. The truth was always there. You just needed to retune the decoder.",
     'Momentum': "Forward motion begins with a single intentional step. The Field responds to movement, not waiting.",
     'Trust': "Certainty emerges when you stop demanding proof before you move. The path reveals itself to those already walking.",
-    'Joy': "Joy is not a reward for right living—it's the frequency that makes right living possible.",
+    'Joy': "Joy is not a reward for right living. It's the frequency that makes right living possible.",
     'Connection': "Resonance requires vulnerability. To create constructive interference with another, you must first broadcast authentically.",
-    'Presence': "The only frequency that exists is now. Past and future are interference patterns in the decoder—memory and projection, not reality.",
+    'Presence': "The only frequency that exists is now. Past and future are interference patterns in the decoder. Memory and projection, not reality.",
     'Resilience': "You have already survived everything that has happened to you. That track record is not accidental. It is structural.",
     'Courage': "Action in the presence of fear is the definition of courage. The fear does not leave. You move anyway.",
     'Gratitude': "Appreciation is not passive. It is an active broadcast that reorganizes your reticular activating system toward signal.",
-    'Release': "What you carry that is not yours was never meant to stay. Releasing it is not loss—it is correction.",
+    'Release': "What you carry that is not yours was never meant to stay. Releasing it is not loss. It is correction.",
     'Integration': "Synthesis happens when you stop treating parts of your experience as problems to solve and start treating them as data to include.",
     'Boundary': "A boundary is not a wall. It is a declaration of what frequency you are willing to broadcast at. Everything outside that range is static."
 };
@@ -165,7 +165,7 @@ const TUNE_LIMITS = {
 function _tfGetDailyLimit() {
     // Operator+ (level >= 10) = unlimited
     if (MC.tier && MC.tier.level >= 10) return TUNE_LIMITS.unlimited;
-    // Pro (level 5) = 5 per day
+    // Pro (level 5) = unlimited Tune
     if (MC.tier && MC.tier.level >= 5) return TUNE_LIMITS.pro;
     return TUNE_LIMITS.free;
 }
@@ -194,6 +194,226 @@ function _tfCountdownStr() {
     return `${s}s`;
 }
 
+// Draft screen words for batch 1. Edit here. The Tuner shell paints Home,
+// Help, and the welcome from this object. No em dashes.
+const LT_COPY = {
+    fieldLabel: "The Field",
+    fieldDesc: "today's tuning for everyone",
+    tuneLabel: "Tune",
+    tuneDesc: "you, right now",
+    tuneAvailable: "Your free Tune is available now",
+    tuneUsed: "Used today. Next free Tune at midnight",
+    tuneUnlimited: "Unlimited Tune",
+    tuneNone: "No personal Tune yet.",
+    yourLastTuning: "your last tuning",
+    tuneSlow: "Your last tuning is still loading.",
+    tuneLoadFail: "Couldn't load your tunings. You can still tune.",
+    fieldRecord: "The Field",
+    yourStreak: "Your streak",
+    streakZero: "Start your streak today",
+    yourTuneHistory: "Your Tune history",
+    fieldHistory: "The Field's history",
+    welcomeTitle: "Welcome",
+    welcomeNext: "Next",
+    welcomeDone: "Done",
+    welcomePages: [
+        "The Field is today's tuning for everyone. Tune is you, right now.",
+        "One free Tune a day. It comes back at midnight on your clock. Pro is unlimited Tune.",
+        "Your streak is the days in a row you showed up, on the Field or with Tune. That count is yours. LT's consecutive tuning count stays LT's.",
+    ],
+    welcomeEnd: "This is always available in Help.",
+    helpWelcome: "Welcome",
+    helpEntries: [
+        {
+            dt: "The Field",
+            dd: "Today's tuning for everyone. LT publishes it. It is the same one everywhere, and it is not your personal Tune.",
+        },
+        {
+            dt: "Tune",
+            dd: "You, right now. One free Tune a day, back at midnight on your clock. Pro is unlimited Tune.",
+        },
+        {
+            dt: "Your streak",
+            dd: "The days in a row you did your tuning, on the Field or with Tune. LT's consecutive tuning count is LT's, not yours.",
+        },
+        {
+            dt: "The player",
+            dd: "Press play and the tuning keeps going while you move between Home, the Field, Tune, and Playlists.",
+        },
+    ],
+};
+window.LT_COPY = LT_COPY;
+
+const LT_FIELD_DAYS_KEY = "lt_field_days";
+
+function _tfWords() {
+    return window.LT_COPY || LT_COPY;
+}
+
+function _tfFieldDays() {
+    try {
+        const parsed = JSON.parse(localStorage.getItem(LT_FIELD_DAYS_KEY) || "[]");
+        return Array.isArray(parsed) ? parsed.map(d => String(d).slice(0, 10)) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function _tfNoteFieldDay() {
+    const today = _tfTodayStr();
+    const days = _tfFieldDays();
+    if (days.indexOf(today) === -1) {
+        days.push(today);
+        try { localStorage.setItem(LT_FIELD_DAYS_KEY, JSON.stringify(days.slice(-400))); } catch (e) {}
+    }
+    return days;
+}
+window._tfNoteFieldDay = _tfNoteFieldDay;
+
+function _tfStreakCount(dayList, todayStr) {
+    const days = Array.from(new Set((dayList || []).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)))).sort();
+    if (!days.length || !todayStr) return 0;
+    const last = days[days.length - 1];
+    const todayDate = new Date(todayStr + "T12:00:00");
+    const y = new Date(todayDate);
+    y.setDate(y.getDate() - 1);
+    const yesterday = `${y.getFullYear()}-${_tfPad2(y.getMonth() + 1)}-${_tfPad2(y.getDate())}`;
+    if (last !== todayStr && last !== yesterday) return 0;
+    let n = 1;
+    for (let i = days.length - 1; i > 0; i--) {
+        const newer = new Date(days[i] + "T12:00:00");
+        const older = new Date(days[i - 1] + "T12:00:00");
+        const diff = Math.round((newer - older) / 86400000);
+        if (diff === 1) n += 1;
+        else break;
+    }
+    return n;
+}
+
+function _tfIsFieldRecord(data) {
+    if (!data) return false;
+    if (data.from_public_drop || data.is_latest || data._fromArchive) return true;
+    const mode = String(data.entry_mode || "");
+    return mode === "Daily drop" || mode === "Archive drop";
+}
+
+// API coaching is written by the model. People read this, so a dash becomes a sentence.
+function _tfReadCoaching(text) {
+    let s = String(text || '');
+    s = s.replace(/[ \t]*[\u2014\u2013][ \t]*/g, '. ');
+    s = s.replace(/\.{2,}/g, '.');
+    s = s.replace(/\.\s+\./g, '.');
+    s = s.replace(/\.\s+([a-z])/g, function(_, ch) { return '. ' + ch.toUpperCase(); });
+    return s.trim();
+}
+
+function _tfCoachingText(data, freq, fieldRecord) {
+    let coaching = '';
+    if (fieldRecord) {
+        coaching = ((data && (data.universal_coaching || data.tuning_prompt)) || '').trim();
+    } else {
+        coaching = ((data && data.coaching) || '').trim();
+        if (!coaching) coaching = ((data && (data.universal_coaching || data.tuning_prompt)) || '').trim();
+    }
+    if (!coaching) coaching = TUNE_COACHING[freq] || '';
+    return _tfReadCoaching(coaching);
+}
+
+function _tfIsPersonalSession(session) {
+    if (!session || _tfIsFieldRecord(session)) return false;
+    return !!(session.session_id || session.context);
+}
+
+async function _tfRefreshStreak() {
+    const days = _tfFieldDays().slice();
+    (tuneFlow._sessions || []).forEach(s => {
+        if (!_tfIsPersonalSession(s)) return;
+        const d = _tfSessionLocalDay(s);
+        if (d) days.push(d);
+    });
+    let n = _tfStreakCount(days, _tfTodayStr());
+    try {
+        const resp = await fetch("/api/tuning/streak");
+        if (resp.ok) {
+            const data = await resp.json();
+            const server = Number(data && data.current_streak) || 0;
+            if (server > n) n = server;
+        }
+    } catch (e) {}
+    tuneFlow.streak = n;
+    return n;
+}
+
+function _tfStreakText() {
+    const n = Number(tuneFlow.streak) || 0;
+    if (n < 1) return _tfWords().streakZero;
+    const unit = n === 1 ? "day" : "days";
+    return `${_tfWords().yourStreak}: ${n} ${unit}`;
+}
+window._tfStreakText = _tfStreakText;
+window._tfRefreshStreak = _tfRefreshStreak;
+
+function _tfStreakLine() {
+    return `<p class="tf-streak">${ESC(_tfStreakText())}</p>`;
+}
+
+function _tfFreeTuneUsed() {
+    if (_tfGetDailyLimit() === -1) return false;
+    const count = tuneFlow.todayCount || 0;
+    return count > 0 && !_tfCanTuneAgain(count);
+}
+
+function _tfTuneStateHTML() {
+    const words = _tfWords();
+    if (_tfGetDailyLimit() === -1) {
+        return `<p class="tf-tune-state tf-tune-state-pro">${ESC(words.tuneUnlimited)}</p>`;
+    }
+    if (_tfFreeTuneUsed()) {
+        return `<p class="tf-tune-state tf-tune-state-used">${ESC(words.tuneUsed)}</p>`;
+    }
+    return `<p class="tf-tune-state">${ESC(words.tuneAvailable)}</p>`;
+}
+
+function _tfCoercePracticeStep(item) {
+    if (typeof item === "object" && item) {
+        const title = String(item.title || "").trim();
+        const numbered = !title || /^\d+$/.test(title);
+        return {
+            title: numbered ? "" : title,
+            text: String(item.instruction || item.text || ""),
+        };
+    }
+    return { title: "", text: String(item || "") };
+}
+
+function _tfPracticeTrio(data) {
+    if (!data) return null;
+    const candidates = [];
+    if (Array.isArray(data.practice_steps)) candidates.push(data.practice_steps);
+    if (Array.isArray(data.practice)) candidates.push(data.practice);
+    const obj = data.practice_steps;
+    if (obj && typeof obj === "object" && !Array.isArray(obj) && obj.step1) {
+        candidates.push([obj.step1, obj.step2, obj.step3]);
+    }
+    if (Array.isArray(data.universal_practice)) candidates.push(data.universal_practice);
+    for (let i = 0; i < candidates.length; i++) {
+        const steps = candidates[i].slice(0, 3).map(_tfCoercePracticeStep);
+        if (!steps.some(s => s.title)) continue;
+        while (steps.length < 3) steps.push({ title: "", text: "" });
+        return { step1: steps[0], step2: steps[1], step3: steps[2] };
+    }
+    return null;
+}
+
+function _tfPracticeCompactHTML(practice) {
+    if (!practice) return "";
+    return [practice.step1, practice.step2, practice.step3].map((step, i) => {
+        const title = step && step.title ? `<strong>${ESC(step.title)}</strong>` : "";
+        const text = step && (step.text || step.instruction) ? ESC(step.text || step.instruction) : "";
+        return `<div class="tf-practice-step"><span class="tf-practice-num">${i + 1}</span><div>${title}<p>${text}</p></div></div>`;
+    }).join("");
+}
+
 // ─── Flow State ──────────────────────────────────────────────────────────────
 
 const tuneFlow = {
@@ -207,15 +427,63 @@ const tuneFlow = {
 
 // Countdown timer interval
 let _tfCountdownInterval = null;
+let _tfLoadGen = 0;
 
 // ─── Entry Point (called when Tune tab loads) ────────────────────────────────
+
+function _tfShowTuneWait(container, message) {
+    container.innerHTML = `
+        <div class="tune-flow">
+            <p class="tf-tune-slow">${ESC(message)}</p>
+            ${_tfTuneNowTopHTML()}
+        </div>`;
+}
+
+async function _tfFetchPersonalHistory() {
+    // This is the call that holds "Loading Tune…". /api/tuning/history opens
+    // Postgres through get_db() with no connect timeout, so a slow connect
+    // sits here for about 20s. Abort and let the page say so.
+    const ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), 8000) : null;
+    try {
+        const histResp = await fetch('/api/tuning/history?limit=100', ctrl ? { signal: ctrl.signal } : undefined);
+        if (!histResp.ok) throw new Error('history');
+        return await histResp.json();
+    } finally {
+        if (timer) clearTimeout(timer);
+    }
+}
+
+function _tfTierBucket() {
+    const level = (typeof MC !== 'undefined' && MC && MC.tier && MC.tier.level) || 0;
+    return level >= 5 ? 'unlimited' : 'free';
+}
+
+function _tfRefreshLimitChrome() {
+    const container = _tfContainer();
+    if (!container || tuneFlow.step > 0) return;
+    const old = container.querySelector('.tf-tune-now-top');
+    if (!old) return;
+    const wrap = document.createElement('div');
+    wrap.innerHTML = _tfTuneNowTopHTML().trim();
+    const next = wrap.firstElementChild;
+    if (next) old.replaceWith(next);
+    if (_tfFreeTuneUsed()) {
+        _tfStartCountdown();
+        return;
+    }
+    if (_tfCountdownInterval) { clearInterval(_tfCountdownInterval); _tfCountdownInterval = null; }
+    const pro = document.getElementById('lt-pro-overlay');
+    if (pro && pro.remove) pro.remove();
+    const legacy = document.getElementById('tf-upgrade-overlay');
+    if (legacy && legacy.remove) legacy.remove();
+}
 
 async function loadTuneFlow() {
     const container = document.getElementById('panel-tune') || document.querySelector('[id="panel-tune"]');
     if (!container) return;
 
-    // Mini-player re-open: rebuilding would _tfsInit → reshuffle → otSetPlaylist(0)
-    // and replace the song that is actually playing.
+    // Mini-player re-open: rebuilding would replace the song that is playing.
     if (!tuneFlow._forceNewFlow
         && typeof _otSource !== 'undefined' && _otSource === 'tune'
         && typeof otAudio !== 'undefined' && otAudio && !otAudio.paused
@@ -223,8 +491,33 @@ async function loadTuneFlow() {
         return;
     }
 
+    const gen = ++_tfLoadGen;
+
     // Clear any previous countdown
     if (_tfCountdownInterval) { clearInterval(_tfCountdownInterval); _tfCountdownInterval = null; }
+
+    // Tier first, with a cap, before any Used-today decision or render.
+    // History still has its own slow state after this. A tier that lands
+    // after the cap corrects the limit chrome once.
+    const tierReady = window.MCReady || Promise.resolve();
+    let tierSettled = false;
+    Promise.resolve(tierReady).then(() => { tierSettled = true; }, () => { tierSettled = true; });
+    await Promise.race([window.MCReady || Promise.resolve(), new Promise(r => setTimeout(r, 3000))]);
+    if (gen !== _tfLoadGen) return;
+    if (!tierSettled) {
+        const before = _tfTierBucket();
+        Promise.resolve(tierReady).then(() => {
+            if (gen !== _tfLoadGen || tuneFlow.step > 0) return;
+            if (_tfTierBucket() === before) return;
+            _tfRefreshLimitChrome();
+        }, () => {});
+    }
+
+    const slowTimer = setTimeout(() => {
+        if (gen !== _tfLoadGen || tuneFlow.step > 0) return;
+        if (container.querySelector('.tune-flow')) return;
+        _tfShowTuneWait(container, _tfWords().tuneSlow);
+    }, 4000);
 
     // Morning-open / cold-start: ?view=latest (or session flag) always opens the
     // latest public Drop — never a blank wizard, never "waiting for today".
@@ -237,10 +530,27 @@ async function loadTuneFlow() {
 
     if (openLatest && !tuneFlow._forceNewFlow) {
         const dropTune = await _tfFetchLatestDropTuning();
+        if (gen !== _tfLoadGen) { clearTimeout(slowTimer); return; }
         if (dropTune) {
+            try {
+                const histData = await _tfFetchPersonalHistory();
+                const rows = histData.sessions || [];
+                const personal = Array.isArray(rows) ? rows.filter(_tfIsPersonalSession) : [];
+                tuneFlow._sessions = personal;
+                tuneFlow.todayCount = personal.filter(t => _tfIsPersonalTuneToday(t)).length;
+            } catch (e) {
+                tuneFlow.todayCount = 0;
+            }
+            try {
+                await Promise.race([
+                    _tfRefreshStreak(),
+                    new Promise((resolve) => setTimeout(resolve, 2000)),
+                ]);
+            } catch (e) {}
+            clearTimeout(slowTimer);
+            if (gen !== _tfLoadGen || tuneFlow.step > 0) return;
             tuneFlow.tuningData = dropTune;
             tuneFlow.step = 0;
-            tuneFlow.todayCount = 0;
             await _renderCompletedTuning(container, dropTune);
             return;
         }
@@ -250,24 +560,24 @@ async function loadTuneFlow() {
     let latestTune = null;
     let mostRecentEver = null;
     let todayCount = 0;
+    let sessions = [];
 
+    let historyFailed = false;
     try {
-        // Get history — includes past days
-        const histResp = await fetch('/api/tuning/history?limit=20');
-        const histData = await histResp.json();
-        const sessions = histData.sessions || histData || [];
-        if (Array.isArray(sessions)) {
-            // Count today's tunings
-            const todayStr = _tfTodayStr();
-            const todayTunes = sessions.filter(t => t.date === todayStr && t.context);
+        // History includes past days. Personal Tune only. The Field is separate.
+        const histData = await _tfFetchPersonalHistory();
+        const rows = histData.sessions || histData || [];
+        if (Array.isArray(rows)) {
+            sessions = rows.filter(_tfIsPersonalSession);
+            const todayTunes = sessions.filter(t => _tfIsPersonalTuneToday(t));
             todayCount = todayTunes.length;
             if (todayTunes.length > 0) latestTune = todayTunes[0];
 
-            // Find most recent tuning from any day (user-initiated)
-            const anyTune = sessions.find(t => t.context);
+            const anyTune = sessions.find(t => t.context) || sessions[0];
             if (anyTune) mostRecentEver = anyTune;
         }
     } catch (e) {
+        historyFailed = true;
         // Fallback: try /api/tuning/today
         try {
             const resp = await fetch('/api/tuning/today');
@@ -275,6 +585,7 @@ async function loadTuneFlow() {
             const isUserInitiated = data.context && data.context.trim() !== '';
             if (data && data.session_id && isUserInitiated) {
                 mostRecentEver = data;
+                historyFailed = false;
                 if (!data.from_previous_day && _isTuningFromToday(data)) {
                     latestTune = data;
                     todayCount = 1;
@@ -283,16 +594,28 @@ async function loadTuneFlow() {
         } catch (e2) {}
     }
 
-    // Universal daily Drop fills empty history (habit path / first open)
-    if (!latestTune && !mostRecentEver) {
-        const dropTune = await _tfFetchLatestDropTuning();
-        if (dropTune) mostRecentEver = dropTune;
-    }
+    clearTimeout(slowTimer);
+    if (gen !== _tfLoadGen || tuneFlow.step > 0) return;
 
+    // The Field is not this person's Tune. An empty personal history stays empty.
+    tuneFlow._sessions = sessions;
     tuneFlow.todayCount = todayCount;
+    try {
+        await Promise.race([
+            _tfRefreshStreak(),
+            new Promise((resolve) => setTimeout(resolve, 2000)),
+        ]);
+    } catch (e) {}
+    if (gen !== _tfLoadGen || tuneFlow.step > 0) return;
 
     // Pick the best tuning to show: today's if available, otherwise most recent from any day
     const tuneToShow = latestTune || mostRecentEver;
+
+    if (historyFailed && !tuneToShow) {
+        tuneFlow.step = 0;
+        _tfShowTuneWait(container, _tfWords().tuneLoadFail);
+        return;
+    }
 
     // If tuneNow() set the force flag, start fresh only when the daily limit allows
     if (tuneFlow._forceNewFlow) {
@@ -315,19 +638,31 @@ async function loadTuneFlow() {
         tuneFlow.error = null;
         _renderStep1(container);
     } else if (tuneToShow) {
-        // Tune tab via nav — show most recent completed tuning
+        // Tune tab via nav shows the most recent personal tuning, dated.
         tuneFlow.tuningData = tuneToShow;
         tuneFlow.step = 0;
         _renderCompletedTuning(container, tuneToShow);
     } else {
-        // No tuning history at all — start the flow
-        tuneFlow.step = 1;
+        tuneFlow.step = 0;
         tuneFlow.context = null;
         tuneFlow.mode = null;
         tuneFlow.tuningData = null;
         tuneFlow.error = null;
-        _renderStep1(container);
+        _renderTuneLanding(container);
     }
+}
+
+function _renderTuneLanding(container) {
+    container.innerHTML = `
+        <div class="tune-flow">
+            <div class="tf-logo">
+                <img src="/static/mark-tuner.png" alt="Lucid Tuner" class="tf-logo-img">
+            </div>
+            ${_tfTuneNowTopHTML()}
+            <p class="tf-last-empty">${ESC(_tfWords().tuneNone)}</p>
+        </div>
+    `;
+    if (_tfFreeTuneUsed()) _tfStartCountdown();
 }
 
 async function _tfFetchLatestDropTuning() {
@@ -348,6 +683,8 @@ async function _tfFetchLatestDropTuning() {
             universal_coaching: data.universal_coaching || data.tuning_prompt || '',
             universal_practice: data.universal_practice || [],
             practice_steps: data.practice_steps || null,
+            lt_echo_num: data.lt_echo_num || data.tuning_day || '',
+            love_equation: data.love_equation || null,
             context: data.is_today === false ? 'Latest tuning' : 'Today\'s tuning',
             entry_mode: data.is_today === false ? 'Archive drop' : 'Daily drop',
             from_public_drop: true,
@@ -359,23 +696,79 @@ async function _tfFetchLatestDropTuning() {
     }
 }
 
+function _tfPad2(n) {
+    return String(n).padStart(2, '0');
+}
+
 function _tfTodayStr() {
     const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    return `${d.getFullYear()}-${_tfPad2(d.getMonth()+1)}-${_tfPad2(d.getDate())}`;
+}
+
+function _tfLocalDayFromMs(ms) {
+    const d = new Date(ms);
+    if (!Number.isFinite(d.getTime())) return '';
+    return `${d.getFullYear()}-${_tfPad2(d.getMonth()+1)}-${_tfPad2(d.getDate())}`;
+}
+
+function _tfDateKey(dateVal) {
+    const raw = String(dateVal || '');
+    const ymd = raw.slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(ymd)) return ymd;
+    const t = Date.parse(dateVal);
+    if (!Number.isFinite(t)) return '';
+    return _tfLocalDayFromMs(t);
+}
+
+function _tfSessionLocalDay(session) {
+    if (!session) return '';
+    if (session.created_at) {
+        const t = Date.parse(session.created_at);
+        if (Number.isFinite(t)) return _tfLocalDayFromMs(t);
+    }
+    const parts = String(session.session_id || '').split('_');
+    if (parts.length >= 2) {
+        const ts = parseInt(parts[1], 10);
+        if (Number.isFinite(ts) && ts > 1e9) return _tfLocalDayFromMs(ts * 1000);
+    }
+    const dateKey = _tfDateKey(session.date);
+    const timeRaw = String(session.time || '').trim();
+    if (dateKey && timeRaw) {
+        const iso = dateKey + 'T' + timeRaw + (/Z|[+-]\d{2}:?\d{2}$/.test(timeRaw) ? '' : 'Z');
+        const t = Date.parse(iso);
+        if (Number.isFinite(t)) return _tfLocalDayFromMs(t);
+    }
+    if (dateKey) {
+        const t = Date.parse(dateKey + 'T00:00:00Z');
+        if (Number.isFinite(t)) return _tfLocalDayFromMs(t);
+    }
+    return '';
+}
+
+// Local calendar day of the session instant — not the UTC date column.
+function _tfDateIsToday(dateVal) {
+    const d = _tfDateKey(dateVal);
+    if (!d) return false;
+    return d === _tfTodayStr();
+}
+
+function _tfIsPersonalTuneToday(session) {
+    return !!(session && session.context && _tfSessionLocalDay(session) === _tfTodayStr());
 }
 
 function _isTuningFromToday(data) {
-    if (!data.date) {
-        const parts = (data.session_id || '').split('_');
-        if (parts.length >= 2) {
-            const ts = parseInt(parts[1]) * 1000;
-            const tuningDate = formatDateOnly(new Date(ts).toISOString());
-            const today = formatDateOnly(new Date().toISOString());
-            return tuningDate === today;
-        }
-        return false;
+    if (!data) return false;
+    return _tfSessionLocalDay(data) === _tfTodayStr();
+}
+
+function _tfBlockIfLocked() {
+    if (_tfCanTuneAgain(tuneFlow.todayCount || 0)) return false;
+    const container = _tfContainer();
+    if (container && tuneFlow.tuningData) {
+        _renderCompletedTuning(container, tuneFlow.tuningData);
     }
-    return data.date === _tfTodayStr();
+    _tfUpgrade();
+    return true;
 }
 
 // ─── Step 1: Context Selection ───────────────────────────────────────────────
@@ -450,6 +843,7 @@ function _renderStep2(container) {
 }
 
 function _tfSelectMode(el) {
+    if (_tfBlockIfLocked()) return;
     const frequency = el.dataset.frequency;
     const label = el.dataset.label;
     if (!frequency || !label) return;
@@ -470,16 +864,17 @@ the Signal that resonates with what I am now.
 I receive it. I evolve.`;
 
 const QUANTUM_MESSAGES = [
-    'True quantum entropy selects your frequency. Not pseudo-random—actual vacuum fluctuations.',
-    'The Field participates in this selection. Your decoder collapses one possibility from superposition.',
-    'Engineered synchronicity: consciousness-aware technology choosing your tuning.',
-    'One frequency from infinite possibilities. The quantum Field has already chosen.',
-    'Your RAS is decoding the Signal. The selection is already in motion.',
+    'Your answers set the frequency. The field selects the song inside it.',
+    'What you are doing names the broadcast. The field selects the song inside that frequency.',
+    'The frequency you want to broadcast is set. The field selects the Signal inside it.',
+    'Your decoder holds the frequency you want to broadcast. The field selects the song inside it.',
+    'Alignment begins with your answers. The field selects the song inside the frequency.',
 ];
 
 // ─── Step 3: Field Selection (Intention + E Declaration + API in parallel) ──
 
 function _renderStep3(container) {
+    if (_tfBlockIfLocked()) return;
     tuneFlow.step = 3;
     tuneFlow.eStart = null;
     tuneFlow._apiDone = false;
@@ -528,6 +923,24 @@ function _tfSetE(value, el) {
     el.classList.add('selected');
     // Show the Receive Tuning button
     _tfShowReceiveButton();
+    _tfSaveSignalBefore();
+}
+
+function _tfSaveSignalBefore() {
+    const value = tuneFlow.eStart;
+    if (value == null) return;
+    const sessionId = tuneFlow.tuningData && tuneFlow.tuningData.session_id;
+    if (!sessionId) return;
+    if (tuneFlow._signalBeforeFor === sessionId && tuneFlow._signalBeforeValue === value) return;
+    tuneFlow._signalBeforeFor = sessionId;
+    tuneFlow._signalBeforeValue = value;
+    fetch('/api/tuning/session/' + encodeURIComponent(sessionId), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ signal_before: value })
+    }).catch(() => {
+        if (tuneFlow._signalBeforeFor === sessionId) tuneFlow._signalBeforeFor = '';
+    });
 }
 
 function _tfShowReceiveButton() {
@@ -593,6 +1006,7 @@ function _tfCheckStep3Ready() {
 }
 
 async function _tfRequestTuning(container) {
+    if (_tfBlockIfLocked()) return;
     try {
         const resp = await fetch('/api/tuning/request', {
             method: 'POST',
@@ -608,14 +1022,16 @@ async function _tfRequestTuning(container) {
 
         const data = await resp.json().catch(() => ({}));
         if (resp.status === 429 || data.error === 'daily_limit') {
-            // Server enforced free daily limit — treat as used and upsell
+            // Server enforced free daily limit — never leave the quantum step running.
             if (typeof data.today_count === 'number') tuneFlow.todayCount = data.today_count;
             else tuneFlow.todayCount = Math.max(tuneFlow.todayCount || 0, 1);
             tuneFlow._apiDone = false;
             if (tuneFlow._qMsgInterval) clearInterval(tuneFlow._qMsgInterval);
             _tfUpdateHomeButton();
             if (tuneFlow.tuningData) {
-                _renderCompletedTuning(container, tuneFlow.tuningData);
+                await _renderCompletedTuning(container, tuneFlow.tuningData);
+            } else {
+                await loadTuneFlow();
             }
             _tfUpgrade();
             return;
@@ -624,6 +1040,7 @@ async function _tfRequestTuning(container) {
         tuneFlow.tuningData = data;
         tuneFlow._apiDone = true;
         _tfIncrementCount();
+        _tfSaveSignalBefore();
 
         // If user already declared E, advance
         _tfCheckStep3Ready();
@@ -645,7 +1062,7 @@ function _renderStep4(container) {
     const d = tuneFlow.tuningData;
     const freq = d.frequency || tuneFlow.mode.frequency;
     // Use LLM-generated coaching from API, fall back to static
-    const coaching = d.coaching || TUNE_COACHING[freq] || TUNE_COACHING['Peace'];
+    const coaching = _tfReadCoaching(d.coaching || TUNE_COACHING[freq] || TUNE_COACHING['Peace']);
 
     container.innerHTML = `
         <div class="panel-scroll tune-flow">
@@ -673,9 +1090,16 @@ function _renderStep5(container) {
     tuneFlow.step = 5;
     const d = tuneFlow.tuningData;
 
-    // Use API practice steps if available, fall back to static templates
+    // Drop practice_steps keep their published titles. Templates are the fallback.
     let steps;
-    if (d.practice && Array.isArray(d.practice) && d.practice.length) {
+    const trio = _tfPracticeTrio(d);
+    if (trio) {
+        steps = [
+            { step: 1, title: trio.step1.title, instruction: trio.step1.text },
+            { step: 2, title: trio.step2.title, instruction: trio.step2.text },
+            { step: 3, title: trio.step3.title, instruction: trio.step3.text },
+        ];
+    } else if (d.practice && Array.isArray(d.practice) && d.practice.length) {
         steps = d.practice;
     } else {
         const freq = d.frequency || tuneFlow.mode.frequency;
@@ -884,39 +1308,28 @@ function _tfFinish() {
 
 // ─── Completed Tuning View (persistent until midnight) ───────────────────────
 
+let _tfTuneMirrorsGen = 0;
+let _tfDropMirrorsGen = 0;
+
 async function _renderCompletedTuning(container, data) {
+    _tfTuneMirrorsGen++;
     const rawFreq = data.frequency || '';
     // Normalize: API may return "CLARITY", keys are "Clarity"
     const freq = rawFreq.charAt(0).toUpperCase() + rawFreq.slice(1).toLowerCase();
     const key = data.tuning_key || data.tuningKey || '';
     const principle = data.principle || '';
-    // Prefer Drop/universal coaching when morning-open or public Drop landed here
-    let coaching = (data.universal_coaching || data.tuning_prompt || '').trim();
-    if (!coaching) coaching = TUNE_COACHING[freq] || '';
+    const fieldRecord = _tfIsFieldRecord(data);
+    let coaching = _tfCoachingText(data, freq, fieldRecord);
     const templateKey = TUNE_TEMPLATE_MAP[freq] || 'coherence';
-    let practice = TUNE_PRACTICE_TEMPLATES[templateKey];
-    const uPractice = data.universal_practice;
-    if (Array.isArray(uPractice) && uPractice.length >= 3) {
-        const step = (i) => {
-            const s = uPractice[i];
-            if (typeof s === 'object' && s) {
-                return { title: s.title || String(i + 1), text: s.instruction || s.text || '' };
-            }
-            return { title: String(i + 1), text: String(s || '') };
-        };
-        practice = { step1: step(0), step2: step(1), step3: step(2) };
-    } else if (data.practice_steps && Array.isArray(data.practice_steps) && data.practice_steps.length >= 3) {
-        const step = (i) => {
-            const s = data.practice_steps[i] || {};
-            return { title: s.title || String(i + 1), text: s.instruction || s.text || '' };
-        };
-        practice = { step1: step(0), step2: step(1), step3: step(2) };
-    }
+    let practice = _tfPracticeTrio(data) || TUNE_PRACTICE_TEMPLATES[templateKey];
     const audioUrl = data.audio_url || '';
     const echoName = (data.echo_full_name || data.echo_filename || '').replace('.mp3','').replace(/_/g,' ');
     const album = (data.echo_album || '').replace(/_/g,' ');
-    const context = data.context || '';
-    const entryMode = data.entry_mode || data.initial_state || '';
+    const activity = String(data.context || '').trim();
+    const need = String(data.initial_state || '').trim();
+    const answerLine = [activity, need].filter(Boolean).join(' · ');
+    const recordKicker = fieldRecord ? _tfWords().fieldRecord : _tfWords().yourLastTuning;
+    const recordDate = _tfRecordDateLabel(data);
 
     // Store active session ID for history filtering
     tuneFlow._activeSessionId = data.session_id || '';
@@ -926,13 +1339,19 @@ async function _renderCompletedTuning(container, data) {
             <div class="tf-logo">
                 <img src="/static/mark-tuner.png" alt="Lucid Tuner" class="tf-logo-img">
             </div>
-            ${_tfCanTuneAgain(tuneFlow.todayCount) ? '<div class="tf-tune-now-top"><button class="tf-btn tf-btn-next tf-btn-tune-now" onclick="_tfStartNewTune()">Tune Now</button></div>' : ''}
+            ${_tfTuneNowTopHTML()}
             <div class="tf-complete-header">
-                <span class="tf-complete-title">Your Tune</span>
+                <span class="tf-complete-title">${ESC(recordKicker)}</span>
+                ${recordDate ? `<span class="tf-complete-date">${ESC(recordDate)}</span>` : ''}
                 <span class="tf-complete-freq">${ESC(freq)}</span>
                 <span class="tf-complete-principle">${ESC(principle)}</span>
-                ${context ? `<span class="tf-complete-context">${ESC(context)}${entryMode ? ' · ' + ESC(entryMode) : ''}</span>` : ''}
+                ${!fieldRecord && answerLine ? `<span class="tf-complete-context">${ESC(answerLine)}</span>` : ''}
             </div>
+
+            ${key ? `<div class="tf-complete-section tf-complete-key">
+                <span class="tf-section-label">Tuning Key</span>
+                <blockquote class="tf-key-quote">"${ESC(String(key).split(' / ').join('\n'))}"</blockquote>
+            </div>` : ''}
 
             <div class="tf-complete-section">
                 <span class="tf-section-label">Coaching</span>
@@ -942,15 +1361,8 @@ async function _renderCompletedTuning(container, data) {
             <div class="tf-complete-section">
                 <span class="tf-section-label">Practice</span>
                 <div class="tf-practice tf-practice-compact">
-                    <div class="tf-practice-step"><span class="tf-practice-num">1</span><div><strong>${practice.step1.title}</strong> — ${practice.step1.text}</div></div>
-                    <div class="tf-practice-step"><span class="tf-practice-num">2</span><div><strong>${practice.step2.title}</strong> — ${practice.step2.text}</div></div>
-                    <div class="tf-practice-step"><span class="tf-practice-num">3</span><div><strong>${practice.step3.title}</strong> — ${practice.step3.text}</div></div>
+                    ${_tfPracticeCompactHTML(practice)}
                 </div>
-            </div>
-
-            <div class="tf-complete-section tf-complete-key">
-                <span class="tf-section-label">Tuning Key</span>
-                <blockquote class="tf-key-quote">"${ESC(String(key).split(' / ').join('\n'))}"</blockquote>
             </div>
 
             <div class="tf-complete-section tf-stream-section">
@@ -958,17 +1370,26 @@ async function _renderCompletedTuning(container, data) {
                 <div id="tfPlayerMount"></div>
             </div>
 
-            ${!_tfCanTuneAgain(tuneFlow.todayCount) ? `<div class="tf-complete-section tf-limit-gate">${_tfTuneAgainHTML()}</div>` : ''}
-
+            <div id="tfTuneMirrors"></div>
             <div id="tfHistory"></div>
         </div>
     `;
 
-    // Init the Tuning Stream player — otInitPlayer handles pending state
-    // if audio is already playing from another surface
-    if (typeof otRenderPlayer === 'function') otRenderPlayer('tfPlayerMount');
-    if (typeof otInitPlayer === 'function') {
-        try { await otInitPlayer(data); } catch (e) {}
+    // Init the Tuning Stream player. If something else is already playing,
+    // otSetPlaylist paints this mount idle (same rule as Drop / Playlists).
+    const live = typeof otAudio !== 'undefined' && otAudio && !otAudio.paused && otAudio.src;
+    if (!live) {
+        if (typeof otRenderPlayer === 'function') otRenderPlayer('tfPlayerMount');
+        if (typeof otInitPlayer === 'function') {
+            try { await otInitPlayer(data); } catch (e) {}
+        }
+    }
+    const mounted = document.querySelector('#tfPlayerMount .ot-player');
+    if (!mounted && typeof _tfBuildModalPlaylist === 'function') {
+        const fColor = (typeof OT_FREQ_COLORS !== 'undefined' && OT_FREQ_COLORS[(data.frequency || '').toUpperCase()]) || 'var(--accent)';
+        try {
+            await _tfBuildModalPlaylist(data, freq, data.signal_type || '', fColor, 'tfPlayerMount');
+        } catch (e) {}
     }
 
     // Start countdown timer if gated
@@ -976,85 +1397,102 @@ async function _renderCompletedTuning(container, data) {
         _tfStartCountdown();
     }
 
-    // Load mirror CTA (streaming link) — same source logic as Overview tab
-    if (MC.features?.mirror) {
-        _tfLoadMirror(freq);
-    }
+    try { await _tfLoadMirror(freq); } catch (e) {}
 
     // Load echo history below the completed view
     _loadTuneHistory();
 }
 
-// ─── Mirror CTA for Completed Tuning ────────────────────────────────────────
+// ─── Mirrors — checked sources, same order, every tuning player ──────────────
+
+function _tfCheckedMirrorSources() {
+    if (typeof window.applyHouseSettingsToMC === 'function') {
+        try { window.applyHouseSettingsToMC(); } catch (e) {}
+    }
+    const feats = (window.MC && MC.features) || {};
+    // House settings turn mirrors off with mirror === false.
+    // An empty list means this door has no saved sources (standalone Tune),
+    // so the vault API still returns today's mirrors.
+    if (feats.mirror === false) return null;
+    return String(feats.mirror_sources || feats.mirror_source || '').trim();
+}
+
+async function _tfFetchCheckedMirrors() {
+    if (window.MCReady) {
+        try { await window.MCReady; } catch (e) {}
+    }
+    const sources = _tfCheckedMirrorSources();
+    if (sources == null) return { has_mirror: false, mirrors: [] };
+    const cacheBust = `v=${window._buildVersion || ''}&d=${new Date().toISOString().slice(0, 10)}`;
+    const query = sources
+        ? ('sources=' + encodeURIComponent(sources) + '&' + cacheBust)
+        : cacheBust;
+    const res = await fetch('/api/mirrors/today?' + query);
+    const data = await res.json();
+    if (!data || !data.has_mirror) return { has_mirror: false, mirrors: [] };
+    const mirrors = data.mirrors || [data];
+    return { ...data, has_mirror: true, mirrors };
+}
+
+function _tfAppendMirrorCards(mount, mirrors, freqColor, freq) {
+    if (!mount) return;
+    mount.replaceChildren();
+    if (!mirrors || !mirrors.length) return;
+    const esc = typeof ESC === 'function' ? ESC : (t => String(t || ''));
+    mirrors.forEach((m, idx) => {
+        const featured = m.featured;
+        if (!featured) return;
+        const wrap = document.createElement('div');
+        wrap.className = 'tf-complete-section';
+        if (m.mirror_type === 'music') {
+            const artist = featured.artist || '';
+            const title = featured.title || '';
+            const lyric = featured.text || '';
+            const spotifyId = featured.spotify_id || '';
+            const youtubeId = featured.youtube_id || '';
+            wrap.innerHTML =
+                '<div class="home-mirror" style="border-left-color:' + freqColor + '50;margin-top:0;">' +
+                    '<div class="home-mirror-header">' +
+                        '<span class="home-mirror-name">' + esc(m.mirror_name) + '</span>' +
+                        '<a href="#" class="home-mirror-reflect" style="color:' + freqColor + ';" ' +
+                            'onclick="_openMusicPlayer(\'' + _escAttr(freq) + '\',\'' + _escAttr(artist) + '\',\'' + _escAttr(title) + '\',\'' + _escAttr(spotifyId) + '\',\'' + _escAttr(youtubeId) + '\'); return false;">Listen &rarr;</a>' +
+                    '</div>' +
+                    '<div class="home-mirror-text" style="font-style:italic;">' + esc(lyric) + '</div>' +
+                    '<span class="home-mirror-ref" style="color:' + freqColor + ';">' + esc(artist) + ' &mdash; ' + esc(title) + '</span>' +
+                '</div>';
+        } else {
+            wrap.innerHTML =
+                '<div class="home-mirror" style="border-left-color:' + freqColor + '50;margin-top:0;">' +
+                    '<div class="home-mirror-header">' +
+                        '<span class="home-mirror-name">' + esc(m.mirror_name) + '</span>' +
+                        (m.entry_count > 1 ? '<a href="#" class="home-mirror-reflect" style="color:' + freqColor + ';" onclick="_tfOpenReflect(' + idx + '); return false;">Reflect &rarr;</a>' : '') +
+                    '</div>' +
+                    '<div class="home-mirror-text">' + esc(featured.text) + '</div>' +
+                    '<span class="home-mirror-ref" style="color:' + freqColor + ';">' + esc(featured.ref) + '</span>' +
+                '</div>';
+        }
+        mount.appendChild(wrap);
+    });
+}
 
 async function _tfLoadMirror(freq) {
+    const gen = ++_tfTuneMirrorsGen;
     try {
-        const mirrorSources = MC.features?.mirror_sources || MC.features?.mirror_source || '';
-        const cacheBust = `v=${window._buildVersion || ''}&d=${new Date().toISOString().slice(0,10)}`;
-        const mirrorParam = mirrorSources
-            ? `?sources=${encodeURIComponent(mirrorSources)}&${cacheBust}`
-            : `?${cacheBust}`;
-        const res = await fetch('/api/mirrors/today' + mirrorParam);
-        const data = await res.json();
-        if (!data.has_mirror) return;
-
+        const data = await _tfFetchCheckedMirrors();
+        if (gen !== _tfTuneMirrorsGen) return;
+        const mirrors = data.mirrors || [];
         const freqUpper = (freq || '').toUpperCase();
         const freqColor = (typeof OT_FREQ_COLORS !== 'undefined' && OT_FREQ_COLORS[freqUpper]) || 'var(--accent)';
-
-        const mirrors = data.mirrors || [data];
-        const streamSection = document.querySelector('.tf-stream-section');
-        if (!streamSection) return;
-
-        // Insert after stream section, but keep mirror order — insert last first
-        const mirrorDivs = [];
-        mirrors.forEach((m, idx) => {
-            const featured = m.featured;
-            if (!featured) return;
-
-            const mirrorDiv = document.createElement('div');
-            mirrorDiv.className = 'tf-complete-section';
-
-            if (m.mirror_type === 'music') {
-                const artist = featured.artist || '';
-                const title = featured.title || '';
-                const lyric = featured.text || '';
-                const spotifyId = featured.spotify_id || '';
-                const youtubeId = featured.youtube_id || '';
-
-                mirrorDiv.innerHTML =
-                    '<div class="home-mirror" style="border-left-color:' + freqColor + '50;margin-top:0;">' +
-                        '<div class="home-mirror-header">' +
-                            '<span class="home-mirror-name">' + esc(m.mirror_name) + '</span>' +
-                            '<a href="#" class="home-mirror-reflect" style="color:' + freqColor + ';" ' +
-                                'onclick="_openMusicPlayer(\'' + _escAttr(freq) + '\',\'' + _escAttr(artist) + '\',\'' + _escAttr(title) + '\',\'' + _escAttr(spotifyId) + '\',\'' + _escAttr(youtubeId) + '\'); return false;">Listen &rarr;</a>' +
-                        '</div>' +
-                        '<div class="home-mirror-text" style="font-style:italic;">' + esc(lyric) + '</div>' +
-                        '<span class="home-mirror-ref" style="color:' + freqColor + ';">' + esc(artist) + ' &mdash; ' + esc(title) + '</span>' +
-                    '</div>';
-            } else {
-                // Text mirror (scripture, etc.)
-                mirrorDiv.innerHTML =
-                    '<div class="home-mirror" style="border-left-color:' + freqColor + '50;margin-top:0;">' +
-                        '<div class="home-mirror-header">' +
-                            '<span class="home-mirror-name">' + esc(m.mirror_name) + '</span>' +
-                            (m.entry_count > 1 ? '<a href="#" class="home-mirror-reflect" style="color:' + freqColor + ';" onclick="_tfOpenReflect(' + idx + '); return false;">Reflect &rarr;</a>' : '') +
-                        '</div>' +
-                        '<div class="home-mirror-text">' + esc(featured.text) + '</div>' +
-                        '<span class="home-mirror-ref" style="color:' + freqColor + ';">' + esc(featured.ref) + '</span>' +
-                    '</div>';
-            }
-
-            mirrorDivs.push(mirrorDiv);
-        });
-
-        // Insert in order after stream section
-        let insertAfter = streamSection;
-        mirrorDivs.forEach(div => {
-            insertAfter.after(div);
-            insertAfter = div;
-        });
-
-        // Store mirror data for Reflect modal
+        let mount = document.getElementById('tfTuneMirrors');
+        if (!mount) {
+            const streamSection = document.querySelector('.tf-stream-section');
+            if (!streamSection) return;
+            mount = document.createElement('div');
+            mount.id = 'tfTuneMirrors';
+            streamSection.after(mount);
+        }
+        if (gen !== _tfTuneMirrorsGen) return;
+        _tfAppendMirrorCards(mount, mirrors, freqColor, freq);
         window._tfMirrorData = data;
         window._tfMirrorMirrors = mirrors;
         window._tfMirrorColor = freqColor;
@@ -1091,19 +1529,24 @@ function _tfOpenReflect(mirrorIdx) {
     modal.style.display = 'flex';
 }
 
-function _tfTuneAgainHTML() {
-    if (_tfCanTuneAgain(tuneFlow.todayCount)) {
-        // Can tune again (Pro/Operator+)
-        return `<button class="tf-btn tf-btn-next" onclick="_tfStartNewTune()">Tune Again</button>`;
+function _tfTuneNowTopHTML() {
+    const status = `${_tfStreakLine()}${_tfTuneStateHTML()}`;
+    if (!_tfFreeTuneUsed()) {
+        return `<div class="tf-tune-now-top">${status}<button type="button" class="tf-btn tf-btn-next tf-btn-tune-now" onclick="_tfStartNewTune()">Tune Now</button></div>`;
     }
-    // Free tier gated — countdown + upgrade prompt
+    // Free daily lock. The sentence says the state. The greyed control still opens Pro.
+    const words = _tfWords();
     return `
-        <div class="tf-countdown">
-            <span class="tf-countdown-label">Next free tune in</span>
-            <span class="tf-countdown-time" id="tfCountdown">${_tfCountdownStr()}</span>
-        </div>
-        <button class="tf-btn tf-btn-upgrade" onclick="_tfUpgrade()">Get unlimited tuning</button>
-    `;
+        <div class="tf-tune-now-top tf-tune-now-locked-wrap">
+            ${status}
+            <button type="button" class="tf-btn tf-btn-tune-now tf-btn-tune-now-locked" aria-disabled="true" aria-label="${ESC(words.tuneUsed)}" onclick="_tfUpgrade()">
+                Tune Now
+                <span class="tf-btn-tune-now-cta">Upgrade for unlimited</span>
+            </button>
+            <div class="tf-countdown">
+                <span class="tf-countdown-time" id="tfCountdown">${_tfCountdownStr()}</span>
+            </div>
+        </div>`;
 }
 
 function _tfStartCountdown() {
@@ -1124,11 +1567,8 @@ function _tfStartCountdown() {
 
 function _tfStartNewTune() {
     // Free tier: never start a second personal tune the same local day.
-    // (Completed view used to call this with no gate — double-tune bug.)
-    if (!_tfCanTuneAgain(tuneFlow.todayCount || 0)) {
-        _tfUpgrade();
-        return;
-    }
+    if (_tfBlockIfLocked()) return;
+    _tfLoadGen++;
     const container = _tfContainer();
     if (!container) return;
     // Stop any playing audio — new Tune Now = new experience
@@ -1204,8 +1644,7 @@ async function _tfUpdateHomeButton() {
             const data = await resp.json();
             const sessions = data.sessions || data || [];
             if (Array.isArray(sessions)) {
-                const todayStr = _tfTodayStr();
-                tuneFlow.todayCount = sessions.filter(t => t.date === todayStr && t.context).length;
+                tuneFlow.todayCount = sessions.filter(t => _tfIsPersonalTuneToday(t)).length;
             }
         } catch (e) {}
     }
@@ -1382,7 +1821,7 @@ async function _loadTuneHistory() {
         const recent = past.slice(0, 5);
 
         let html = '<div class="tf-history">';
-        html += '<div class="tf-history-header">Previous Tunings</div>';
+        html += `<div class="tf-history-header">${ESC(_tfWords().yourTuneHistory)}</div>`;
         html += _tfRenderHistRows(recent);
 
         if (past.length > 5) {
@@ -1437,49 +1876,107 @@ async function _tfOpenTuningModal(idx) {
     await _tfShowTuningDetail(s);
 }
 
+function _tfOrdinal(n) {
+    const num = Number(n);
+    if (!Number.isFinite(num) || num <= 0) return '';
+    const s = ['th', 'st', 'nd', 'rd'];
+    const v = num % 100;
+    return num + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+function _tfRecordDateLabel(data) {
+    if (!data) return "";
+    if (data.date) return _tfFullDropDate(data.date);
+    const day = _tfSessionLocalDay(data);
+    return day ? _tfFullDropDate(day) : "";
+}
+
+function _tfFullDropDate(dateStr) {
+    if (!dateStr) return '';
+    try {
+        const d = new Date(String(dateStr).slice(0, 10) + 'T12:00:00');
+        return d.toLocaleDateString('en-US', {
+            weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+        });
+    } catch (e) {
+        return String(dateStr);
+    }
+}
+
+function _tfPracticeStep(item, i) {
+    if (typeof item === 'object' && item) {
+        const title = String(item.title || '').trim();
+        const numbered = !title || /^\d+$/.test(title);
+        return {
+            title: numbered ? '' : title,
+            text: item.instruction || item.text || '',
+        };
+    }
+    return { title: '', text: String(item || '') };
+}
+
+function _tfPracticeStepHTML(step, num, freqColor) {
+    const title = (step && step.title) ? String(step.title) : '';
+    const text = (step && step.text) ? String(step.text) : '';
+    const titleHtml = title
+        ? `<div class="ot-step-title" style="color:${freqColor};">${ESC(title)}</div>`
+        : '';
+    return `<div class="ot-step"><div class="ot-step-num" style="background:${freqColor};">${num}</div><div class="ot-step-body">${titleHtml}<div class="ot-step-text">${ESC(text)}</div></div></div>`;
+}
+
+function _tfLoveEqHTML(le, freqColor) {
+    if (!le || typeof le !== 'object') return '';
+    const beta = Number(le.beta), E = Number(le.E), C = Number(le.C), D = Number(le.D);
+    if ([beta, E, C, D].every(Number.isFinite)) {
+        const dEdt = beta * (C - D) * E;
+        const direction = dEdt >= 0 ? 'CONSTRUCTIVE' : 'DECONSTRUCTIVE';
+        const parts = [
+            'β=' + beta.toFixed(2),
+            'E=' + E.toFixed(2),
+            'C=' + C.toFixed(2),
+            'D=' + D.toFixed(2),
+        ];
+        return `<div class="ot-card ot-eq" style="border-color:${freqColor}40;border-left:3px solid ${freqColor};">
+            <div class="ot-label" style="color:${freqColor};">Love Equation</div>
+            <div class="ot-eq-bar">
+                <span class="ot-eq-val" style="color:${freqColor};">dE/dt = ${dEdt.toFixed(4)} (${direction})</span>
+                <span class="ot-eq-detail">${ESC(parts.join('  '))}</span>
+            </div>
+        </div>`;
+    }
+    if (le.value == null && !le.direction) return '';
+    const dir = le.direction || '';
+    const val = le.value != null && Number.isFinite(Number(le.value))
+        ? Number(le.value).toFixed(4) : '';
+    return `<div class="ot-card ot-eq">
+        <div class="ot-label" style="color:${freqColor};">Love Equation</div>
+        <div class="ot-eq-bar">
+            <span class="ot-eq-val" style="color:${freqColor};">${ESC(dir)}${val ? ' ' + val : ''}</span>
+        </div>
+    </div>`;
+}
+
 async function _tfShowTuningDetail(s) {
+    _tfDropMirrorsGen++;
     // Remove existing modal
     const existing = document.getElementById('tf-tuning-modal');
     if (existing) existing.remove();
+    // Do not pause or rewind. Live audio keeps going until Tune Now or a new track.
 
     const rawFreq = s.frequency || '';
     const freq = rawFreq.charAt(0).toUpperCase() + rawFreq.slice(1).toLowerCase();
     const freqColor = typeof lpColor === 'function' ? lpColor(rawFreq) : 'var(--accent)';
     const principle = s.principle || '';
     const key = s.tuning_key || '';
-    const context = s.context || '';
-    const mode = s.initial_state || s.entry_mode || '';
     const audioUrl = s.audio_url || '';
-    const dateLabel = _tfFormatHistDate(s.date || '');
-    const timeStr = s.time ? s.time.substring(0, 5) : '';
+    const signal = String(s.signal_type || '').replace(/_Signal$/, '').replace(/_/g, ' ');
+    const dayLabel = _tfOrdinal(s.lt_echo_num || s.tuning_day || '');
+    const fullDate = _tfFullDropDate(s.date || '');
+    const streamName = freq ? (freq + ' Tuning Stream') : 'Tuning Stream';
 
-    // Coaching and practice from this session (same as completed view).
-    // lucid-cove used an unbound `data` here — that threw and killed the modal.
-    let coaching = (s.universal_coaching || s.tuning_prompt || s.coaching || '').trim();
-    if (!coaching) coaching = TUNE_COACHING[freq] || '';
+    let coaching = _tfCoachingText(s, freq, _tfIsFieldRecord(s));
     const templateKey = TUNE_TEMPLATE_MAP[freq] || 'coherence';
-    let practice = TUNE_PRACTICE_TEMPLATES[templateKey];
-    const uPractice = s.universal_practice || s.practice;
-    if (Array.isArray(uPractice) && uPractice.length >= 3) {
-        const step = (i) => {
-            const row = uPractice[i];
-            if (typeof row === 'object' && row) {
-                return { title: row.title || String(i + 1), text: row.instruction || row.text || '' };
-            }
-            return { title: String(i + 1), text: String(row || '') };
-        };
-        practice = { step1: step(0), step2: step(1), step3: step(2) };
-    } else if (s.practice_steps && Array.isArray(s.practice_steps) && s.practice_steps.length >= 3) {
-        const step = (i) => {
-            const row = s.practice_steps[i] || {};
-            return { title: row.title || String(i + 1), text: row.instruction || row.text || '' };
-        };
-        practice = { step1: step(0), step2: step(1), step3: step(2) };
-    }
-
-    const fBadge = typeof lpFreqBadgeHTML === 'function'
-        ? lpFreqBadgeHTML(rawFreq)
-        : `<span class="freq-badge" style="color:${freqColor};">${ESC(freq)}</span>`;
+    let practice = _tfPracticeTrio(s) || TUNE_PRACTICE_TEMPLATES[templateKey];
 
     const overlay = document.createElement('div');
     overlay.id = 'tf-tuning-modal';
@@ -1487,61 +1984,163 @@ async function _tfShowTuningDetail(s) {
     overlay.onclick = function(e) { if (e.target === overlay) _tfCloseDetailModal(); };
 
     overlay.innerHTML = `
-        <div class="tf-modal">
+        <div class="tf-modal tf-modal-drop">
             <button class="tf-modal-close" onclick="_tfCloseDetailModal()">&times;</button>
 
-            <div class="tf-modal-header">
-                ${fBadge}
-                <div class="tf-modal-freq" style="color:${freqColor};">${ESC(freq)}</div>
-                <div class="tf-modal-principle" style="color:${freqColor};">${ESC(principle)}</div>
-                <div class="tf-modal-meta">${ESC(dateLabel)} ${ESC(timeStr)}${context ? ' · ' + ESC(context) : ''}${mode ? ' · ' + ESC(mode) : ''}</div>
+            <div class="drop-header">
+                ${dayLabel ? `<div class="drop-tuning-day" style="color:${freqColor}80;">LT's ${ESC(dayLabel)} Consecutive Tuning</div>` : ''}
+                ${fullDate ? `<div class="drop-date" style="color:${freqColor}aa;">${ESC(fullDate)}</div>` : ''}
+                ${freq ? `<div class="drop-alignment" style="color:${freqColor};">${ESC((freq || '').toUpperCase())}</div>` : ''}
+                <div class="drop-principle" style="color:${freqColor};">${ESC(principle)}</div>
+                ${signal ? `<div class="drop-signal">${ESC(signal)} Signal</div>` : ''}
             </div>
 
-            ${coaching ? `<div class="tf-modal-section">
-                <span class="tf-modal-label">Coaching</span>
-                <p class="tf-modal-coaching">${coaching}</p>
+            ${key ? `<div class="ot-card ot-key" style="border-left-color:${freqColor};">
+                <div class="ot-label" style="color:${freqColor};">Tuning Key</div>
+                <div class="ot-text italic">"${ESC(String(key).split(' / ').join('\n'))}"</div>
             </div>` : ''}
 
-            ${practice ? `<div class="tf-modal-section">
-                <span class="tf-modal-label">Practice</span>
-                <div class="tf-modal-practice">
-                    <div class="tf-practice-step"><span class="tf-practice-num" style="background:${freqColor};">1</span><div><strong>${practice.step1.title}</strong> — ${practice.step1.text}</div></div>
-                    <div class="tf-practice-step"><span class="tf-practice-num" style="background:${freqColor};">2</span><div><strong>${practice.step2.title}</strong> — ${practice.step2.text}</div></div>
-                    <div class="tf-practice-step"><span class="tf-practice-num" style="background:${freqColor};">3</span><div><strong>${practice.step3.title}</strong> — ${practice.step3.text}</div></div>
+            ${coaching ? `<div class="ot-card">
+                <div class="ot-label">Coaching</div>
+                <div class="ot-text">${ESC(coaching)}</div>
+            </div>` : ''}
+
+            ${practice ? `<div class="ot-practice">
+                <div class="ot-practice-label" style="color:${freqColor};">Practice</div>
+                <div class="ot-practice-steps">
+                    ${_tfPracticeStepHTML(practice.step1, 1, freqColor)}
+                    ${_tfPracticeStepHTML(practice.step2, 2, freqColor)}
+                    ${_tfPracticeStepHTML(practice.step3, 3, freqColor)}
                 </div>
             </div>` : ''}
 
-            ${key ? `<div class="tf-modal-section">
-                <span class="tf-modal-label">Tuning Key</span>
-                <blockquote class="tf-modal-key" style="border-left-color:${freqColor};">"${ESC(String(key).split(' / ').join('\n'))}"</blockquote>
-            </div>` : ''}
-
-            <div class="tf-modal-section">
-                <span class="tf-modal-label">Tuning Stream</span>
-                <div id="tfModalPlayer"></div>
+            <div class="ot-stream-label">&#9654; PRESS PLAY TO ACTIVATE YOUR
+                <div style="font-size:1rem;font-weight:700;letter-spacing:0.1em;margin-top:6px;color:${freqColor};">${ESC(streamName)}</div>
+            </div>
+            <div id="tfModalPlayer"></div>
+            ${_tfLoveEqHTML(s.love_equation, freqColor)}
+            <div id="tfDropMirrors"></div>
+            <div class="tf-drop-history" id="tfDropHistory" style="display:none;">
+                <div class="tf-history-header">${ESC(_tfWords().fieldHistory)}</div>
+                <div id="tfDropRecent"></div>
             </div>
         </div>
     `;
 
     document.body.appendChild(overlay);
 
-    // Init player in the modal — loads the tuning stream for this frequency
+    // Same module as drop.lucidprinciples.com — always mount the player.
     if (typeof otSetPlaylist === 'function') {
         const freqUpper = rawFreq.toUpperCase();
-        const fColor = (typeof OT_FREQ_COLORS !== 'undefined' && OT_FREQ_COLORS[freqUpper]) || freqColor || 'var(--accent)';
-        const folder = (audioUrl && audioUrl.split('/').slice(-2, -1)[0])
-            || (s.echo_album || '')
-            || ((s.signal_type || '') + (String(s.signal_type || '').endsWith('_Signal') ? '' : '_Signal'));
-
+        const fColor = (typeof OT_FREQ_COLORS !== 'undefined' && OT_FREQ_COLORS[freqUpper]) || freqColor;
+        const rawFolder = s.signal_type || (audioUrl ? audioUrl.split('/').slice(-2, -1)[0] : '') || '';
+        const folder = (typeof otSignalToFolder === 'function')
+            ? otSignalToFolder(rawFolder) : rawFolder;
         try {
             await _tfBuildModalPlaylist(s, freq, folder, fColor);
         } catch (e) {
             console.error('[tune-history] Player init error:', e);
         }
     }
+    try { await _tfLoadDropMirrors(s, freqColor); } catch (e) {}
+    if (s._dropHub) {
+        try { await _tfLoadDropArchive(); } catch (e) {}
+    }
+}
+
+async function _tfLoadDropArchive() {
+    const container = document.getElementById('tfDropRecent');
+    const section = document.getElementById('tfDropHistory');
+    if (!container || !section) return;
+    try {
+        const resp = await fetch('/api/tuning/recent-drops?limit=10');
+        const data = await resp.json();
+        const drops = data.drops || [];
+        window._tfDropRecent = drops;
+        if (!drops.length) return;
+        let html = '';
+        drops.forEach((d, idx) => {
+            const rawFreq = d.frequency || '';
+            const freq = rawFreq.charAt(0).toUpperCase() + rawFreq.slice(1).toLowerCase();
+            const freqColor = (typeof lpColor === 'function')
+                ? lpColor(rawFreq)
+                : ((typeof OT_FREQ_COLORS !== 'undefined' && OT_FREQ_COLORS[rawFreq.toUpperCase()]) || 'var(--accent)');
+            const principle = d.principle || '';
+            const dateLabel = (typeof _tfFullDropDate === 'function')
+                ? _tfFullDropDate(d.date || '')
+                : (d.date || '');
+            const signal = String(d.signal_type || '').replace(/_Signal$/, '').replace(/_/g, ' ');
+            const meta = [freq, signal, dateLabel].filter(Boolean).join(' / ');
+            html += `<div class="tf-hist-row history-item" onclick="_tfOpenDropArchive(${idx})">
+                <div class="history-dot" style="background:${freqColor};box-shadow:0 0 6px ${freqColor}66;"></div>
+                <div class="history-info">
+                    <div class="history-principle" style="color:${freqColor};">${ESC(principle)}</div>
+                    <div class="history-meta">${ESC(meta)}</div>
+                </div>
+                <div class="history-arrow">&#8250;</div>
+            </div>`;
+        });
+        container.innerHTML = html;
+        section.style.display = '';
+    } catch (e) {}
+}
+
+async function _tfOpenDropArchive(idx) {
+    const drops = window._tfDropRecent;
+    if (!drops || !drops[idx]) return;
+    const d = drops[idx];
+    await _tfShowTuningDetail({
+        frequency: d.frequency || '',
+        principle: d.principle || '',
+        tuning_key: d.tuning_key || '',
+        audio_url: d.audio_url || '',
+        date: d.date || '',
+        signal_type: d.signal_type || '',
+        universal_coaching: d.coaching || d.universal_coaching || '',
+        universal_practice: d.universal_practice || null,
+        practice_steps: d.practice_steps || d.practice || null,
+        from_public_drop: true,
+        lt_echo_num: d.sequence || d.lt_echo_num || d.tuning_day || '',
+        love_equation: d.love_equation || (d.love_value != null ? { value: d.love_value } : null),
+        _fromArchive: true,
+    });
+}
+
+async function _tfLoadDropMirrors(s, freqColor) {
+    const gen = ++_tfDropMirrorsGen;
+    const mount = document.getElementById('tfDropMirrors');
+    if (!mount) return;
+    try {
+        const data = await _tfFetchCheckedMirrors();
+        if (gen !== _tfDropMirrorsGen) return;
+        const mirrors = data.mirrors || [];
+        const live = document.getElementById('tfDropMirrors');
+        if (!live || gen !== _tfDropMirrorsGen) return;
+        _tfAppendMirrorCards(live, mirrors, freqColor, s.frequency || '');
+        window._tfMirrorData = data;
+        window._tfMirrorMirrors = mirrors;
+        window._tfMirrorColor = freqColor;
+    } catch (e) {}
+}
+
+function _tfMapSignalTrack(t, signalFolder) {
+    if (typeof otMapCdnTrack === 'function') return otMapCdnTrack(t, signalFolder);
+    const filename = (t && (t.filename || t.file)) || '';
+    const folder = (typeof otSignalToFolder === 'function')
+        ? otSignalToFolder(t.folder || t.signalType || t.signal_type || t.album || signalFolder)
+        : (signalFolder || 'Raw_Signal');
+    const principle = (t && (t.principle || t.title)) || filename;
+    const signalDisplay = String(folder).replace(/_Signal$/, '').replace(/_/g, ' ');
+    return {
+        title: principle + ' (' + signalDisplay + ' Signal Echo)',
+        filename: filename,
+        folder: folder,
+        principle: principle,
+    };
 }
 
 function _tfCloseDetailModal() {
+    _tfDropMirrorsGen++;
     const modal = document.getElementById('tf-tuning-modal');
     if (modal) modal.remove();
     if (typeof otAudio !== 'undefined' && otAudio && otAudio.src && typeof showMiniPlayer === 'function') {
@@ -1549,7 +2148,7 @@ function _tfCloseDetailModal() {
     }
 }
 
-async function _tfBuildModalPlaylist(s, freq, signalFolder, freqColor) {
+async function _tfBuildModalPlaylist(s, freq, signalFolder, freqColor, mountId) {
     let tracks = [];
     let loaded = false;
 
@@ -1558,15 +2157,10 @@ async function _tfBuildModalPlaylist(s, freq, signalFolder, freqColor) {
         try {
             const res = await fetch(OT_PLAYLIST_CDN + '/' + freq.toLowerCase() + '.json');
             if (res.ok) {
-                const playlist = await res.json();
-                const rows = Array.isArray(playlist) ? playlist : ((playlist && playlist.tracks) || []);
-                if (rows.length > 0) {
-                    tracks = rows.map(t => {
-                        const fn = t.filename || t.file || '';
-                        const fd = otSignalToFolder(t.folder || t.signalType || t.signal_type || t.album || signalFolder);
-                        const pr = t.principle || t.title || fn.replace(/_/g, ' ').replace(/\\.mp3$/, '');
-                        return { title: pr + ' (' + fd.replace(/_Signal$/, '').replace(/_/g, ' ') + ' Signal Echo)', filename: fn, folder: fd, principle: pr };
-                    });
+                const rows = (typeof otPlaylistRows === 'function')
+                    ? otPlaylistRows(await res.json()) : [];
+                if (rows.length > 0 && typeof otMapCdnTrack === 'function') {
+                    tracks = rows.map(t => _tfMapSignalTrack(t, signalFolder));
                     loaded = true;
                 }
             }
@@ -1574,28 +2168,37 @@ async function _tfBuildModalPlaylist(s, freq, signalFolder, freqColor) {
     }
 
     // Fallback to signal folder tracks
+    const folder = (typeof otSignalToFolder === 'function')
+        ? otSignalToFolder(signalFolder || s.signal_type) : (signalFolder || 'Raw_Signal');
     if (!loaded && typeof otBuildTracks === 'function') {
-        tracks = otBuildTracks(signalFolder);
+        tracks = otBuildTracks(folder);
     }
 
-    // Shuffle
-    for (let i = tracks.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [tracks[i], tracks[j]] = [tracks[j], tracks[i]];
+    if (!tracks.length) {
+        const filename = (s.echo_filename || (s.audio_url || '').split('/').pop() || '').replace(/^\s+/, '');
+        if (filename) {
+            tracks = [{
+                title: (s.principle || freq) + ' Echo',
+                filename: filename.endsWith('.mp3') ? filename : filename + '.mp3',
+                folder: folder,
+                principle: s.principle || freq,
+            }];
+        }
     }
 
-    // Put this tuning's echo first
-    if (s.principle) {
-        const idx = tracks.findIndex(t => t.principle && t.principle.toLowerCase() === s.principle.toLowerCase());
-        if (idx > 0) { const m = tracks.splice(idx, 1)[0]; tracks.unshift(m); }
-    }
+    if (!tracks.length) return;
+
+    const startIndex = (typeof _otStableStart === 'function')
+        ? _otStableStart(tracks, s.principle)
+        : 0;
 
     otSetPlaylist(tracks, {
         source: 'history',
         label: freq + ' Tuning Stream',
         freqColor: freqColor,
         autoplay: false,
-        mountId: 'tfModalPlayer',
+        startIndex: startIndex,
+        mountId: mountId || 'tfModalPlayer',
     });
 }
 
@@ -1730,15 +2333,10 @@ async function _tfsInit(data) {
         try {
             const res = await fetch(OT_PLAYLIST_CDN + '/' + freq.toLowerCase() + '.json');
             if (res.ok) {
-                const playlist = await res.json();
-                const rows = Array.isArray(playlist) ? playlist : ((playlist && playlist.tracks) || []);
-                if (rows.length > 0) {
-                    tracks = rows.map(t => {
-                        const filename = t.filename || t.file || '';
-                        const folder = otSignalToFolder(t.folder || t.signalType || t.signal_type || t.album || signalFolder);
-                        const principle = t.principle || t.title || filename.replace(/_/g, ' ').replace(/\\.mp3$/, '');
-                        return { title: principle + ' (' + folder.replace(/_Signal$/, '').replace(/_/g, ' ') + ' Signal Echo)', filename, folder, principle };
-                    });
+                const rows = (typeof otPlaylistRows === 'function')
+                    ? otPlaylistRows(await res.json()) : [];
+                if (rows.length > 0 && typeof otMapCdnTrack === 'function') {
+                    tracks = rows.map(t => _tfMapSignalTrack(t, signalFolder));
                     loaded = true;
                 }
             }
@@ -1748,17 +2346,9 @@ async function _tfsInit(data) {
         tracks = otBuildTracks(signalFolder);
     }
 
-    // Shuffle
-    for (let i = tracks.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [tracks[i], tracks[j]] = [tracks[j], tracks[i]];
-    }
-
-    // Put tuning echo first
-    if (data.principle) {
-        const idx = tracks.findIndex(t => t.principle && t.principle.toLowerCase() === data.principle.toLowerCase());
-        if (idx > 0) { const m = tracks.splice(idx, 1)[0]; tracks.unshift(m); }
-    }
+    const startIndex = (typeof _otStableStart === 'function')
+        ? _otStableStart(tracks, data.principle)
+        : 0;
 
     // Get frequency color
     const freqUpper = freq.toUpperCase();
@@ -1771,6 +2361,7 @@ async function _tfsInit(data) {
             label: freq + ' Tuning Stream',
             freqColor: freqColor,
             autoplay: false,
+            startIndex: startIndex,
             mountId: 'tfPlayerMount'
         });
     }
