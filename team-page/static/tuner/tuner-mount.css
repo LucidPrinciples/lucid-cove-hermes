@@ -16,6 +16,10 @@
 .ot-btn:hover { color: var(--text); background: var(--card2); }
 .ot-btn.ot-play { width: 56px; height: 56px; font-size: 1.5rem; color: var(--daily-freq); border: 2px solid var(--daily-freq); }
 .ot-btn.ot-play:hover { background: rgba(255,255,255,0.06); }
+
+.ot-btn.ot-play.is-loading,
+#mpPlayBtn.is-loading { animation: ot-load-pulse 1s ease-in-out infinite; }
+@keyframes ot-load-pulse { 50% { opacity: 0.35; } }
 .ot-volume { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 0.75rem; }
 .ot-volume label { font-size: 0.65rem; color: var(--dim); }
 .ot-volume input[type="range"] { width: 120px; accent-color: var(--daily-freq); height: 28px; cursor: pointer; }
@@ -154,17 +158,20 @@
 /* ── Mini Player ── */
 .mini-player {
   display: none; position: fixed; bottom: 0; left: 0; right: 0; height: 52px;
-  background: var(--card); border-top: 1px solid var(--border); z-index: 250;
+  background: var(--card); border-top: 1px solid var(--border); z-index: 4000;
   align-items: center; padding: 0 12px; gap: 8px; cursor: pointer;
 }
 @media (max-width: 768px) {
   .mini-player { bottom: 64px; }
   body.has-mini-player .panel { padding-bottom: 120px; }
 }
-.mini-player.visible { display: flex; }
+.mini-player.visible,
+body.has-mini-player .mini-player { display: flex !important; }
 .mini-player .mp-info { flex: 1; min-width: 0; overflow: hidden; }
 .mini-player .mp-title { font-size: 0.72rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mini-player .mp-freq { font-size: 0.6rem; color: var(--daily-freq); letter-spacing: 0.08em; }
+.mini-player .mp-status { font-size: 0.62rem; color: #ffb4a8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mini-player .mp-status[hidden] { display: none !important; }
 .mini-player .mp-btn { background: none; border: none; color: var(--dim); cursor: pointer; padding: 6px; border-radius: 50%; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; }
 .mini-player .mp-btn:hover { color: var(--text); background: var(--card2); }
 .mini-player .mp-btn.mp-play { color: var(--daily-freq); }
